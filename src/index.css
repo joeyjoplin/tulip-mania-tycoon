@@ -113,6 +113,13 @@
     75% { transform: translateX(4px); }
   }
   
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-10px); }
+    50% { transform: translateY(0); }
+    75% { transform: translateY(-5px); }
+  }
+  
   .animate-grow {
     animation: grow 0.5s ease-out forwards;
   }
@@ -126,6 +133,10 @@
   }
   
   .animate-shake {
-    animation: shake 0.3s ease-in-out;
+    animation: shake 0.5s ease-in-out infinite;
+  }
+  
+  .animate-bounce {
+    animation: bounce 1s ease-in-out infinite;
   }
 }

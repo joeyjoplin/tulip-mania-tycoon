@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
+import { MerchantCharacter } from "./MerchantCharacter";
 
 interface MarketPanelProps {
   currentPrice: number;
@@ -26,32 +27,41 @@ export const MarketPanel = ({
 
   const maxPrice = Math.max(...priceHistory, 100);
 
+  const previousPrice = priceHistory.length > 1 ? priceHistory[priceHistory.length - 2] : undefined;
+
   return (
     <div className="w-full">
-      <div className="pixel-border bg-card p-6">
-        <h2 className="text-xl mb-4 text-center">📊 Mercado de Tulipas</h2>
+      <div className="pixel-border bg-card p-6 space-y-4">
+        <h2 className="text-xl text-center">🏛️ Mercado de Tulipas</h2>
         
-        <div className="mb-4">
-          <div className="text-center mb-2">
-            <span className="text-sm">Preço Atual:</span>
-            <div className={`text-3xl font-bold text-accent ${animatePrice ? 'animate-pulse-price' : ''}`}>
-              {currentPrice}💰
-            </div>
-          </div>
-          
-          {/* Simple price chart */}
-          <div className="h-32 pixel-border bg-background p-2 flex items-end gap-1">
-            {priceHistory.slice(-20).map((price, i) => (
-              <div
-                key={i}
-                className="flex-1 bg-primary transition-all duration-300"
-                style={{ 
-                  height: `${(price / maxPrice) * 100}%`,
-                  minHeight: '2px'
-                }}
-              />
-            ))}
-          </div>
+        <MerchantCharacter 
+          day={day} 
+          currentPrice={currentPrice}
+          previousPrice={previousPrice}
+        />
+        
+        <div className="pixel-border bg-muted/30 p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Preço Atual</p>
+          <p className={`text-3xl font-bold transition-all duration-300 ${
+            animatePrice ? 'text-accent animate-pulse-price' : ''
+          }`}>
+            💰 {currentPrice}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">moedas por tulipa</p>
+        </div>
+        
+        {/* Simple price chart */}
+        <div className="h-32 pixel-border bg-background p-2 flex items-end gap-1">
+          {priceHistory.slice(-20).map((price, i) => (
+            <div
+              key={i}
+              className="flex-1 bg-primary transition-all duration-300"
+              style={{ 
+                height: `${(price / maxPrice) * 100}%`,
+                minHeight: '2px'
+              }}
+            />
+          ))}
         </div>
 
         <div className="space-y-3">
@@ -76,9 +86,6 @@ export const MarketPanel = ({
           </Button>
         </div>
 
-        <div className="mt-4 text-xs text-center text-muted-foreground">
-          Dia {day} - {day < 15 ? "📈 Mercado em alta" : day < 25 ? "⚠️ Volatilidade" : "🔴 Risco de colapso"}
-        </div>
       </div>
     </div>
   );
