@@ -23,7 +23,7 @@ export const OffersList = ({ offers, onAccept, onReject }: OffersListProps) => {
       {/* Farmer Offers (Buy) */}
       {farmerOffers.length > 0 && (
         <div className="pixel-border bg-card p-3 space-y-2">
-          <h3 className="text-xs text-center mb-2">🌾 Ofertas de Fazendeiros</h3>
+          <h3 className="text-xs text-center mb-2">🌾 Farmers' Offers</h3>
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {farmerOffers.map(offer => (
               <div key={offer.id} className="pixel-border bg-muted/20 p-2 space-y-1">
@@ -32,14 +32,14 @@ export const OffersList = ({ offers, onAccept, onReject }: OffersListProps) => {
                   <span>{offer.quantity} 🌷</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px]">Preço mín: <span className="font-bold text-green-400">{offer.price} 💰</span></span>
+                  <span className="text-[10px]">Min price: <span className="font-bold text-green-400">{offer.price} 💰</span></span>
                   <div className="flex gap-1">
                     <Button
                       onClick={() => onAccept(offer)}
                       className="pixel-button text-[10px] py-0 h-6 px-2"
                       variant="default"
                     >
-                      Comprar
+                      Buy
                     </Button>
                     <Button
                       onClick={() => onReject(offer.id)}
@@ -59,7 +59,7 @@ export const OffersList = ({ offers, onAccept, onReject }: OffersListProps) => {
       {/* Client Offers (Sell) */}
       {clientOffers.length > 0 && (
         <div className="pixel-border bg-card p-3 space-y-2">
-          <h3 className="text-xs text-center mb-2">👥 Pedidos de Clientes</h3>
+          <h3 className="text-xs text-center mb-2">👥 Client Orders</h3>
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {clientOffers.map(offer => (
               <div key={offer.id} className="pixel-border bg-muted/20 p-2 space-y-1">
@@ -68,14 +68,14 @@ export const OffersList = ({ offers, onAccept, onReject }: OffersListProps) => {
                   <span>{offer.quantity} 🌷</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px]">Preço máx: <span className="font-bold text-red-400">{offer.price} 💰</span></span>
+                  <span className="text-[10px]">Max price: <span className="font-bold text-red-400">{offer.price} 💰</span></span>
                   <div className="flex gap-1">
                     <Button
                       onClick={() => onAccept(offer)}
                       className="pixel-button text-[10px] py-0 h-6 px-2"
                       variant="default"
                     >
-                      Vender
+                      Sell
                     </Button>
                     <Button
                       onClick={() => onReject(offer.id)}
@@ -94,7 +94,7 @@ export const OffersList = ({ offers, onAccept, onReject }: OffersListProps) => {
 
       {offers.length === 0 && (
         <div className="pixel-border bg-muted/30 p-4 text-center">
-          <p className="text-xs text-muted-foreground">Aguardando ofertas...</p>
+          <p className="text-xs text-muted-foreground">Waiting for offers...</p>
         </div>
       )}
     </div>

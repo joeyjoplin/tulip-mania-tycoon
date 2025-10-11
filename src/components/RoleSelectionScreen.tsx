@@ -13,12 +13,12 @@ export const RoleSelectionScreen = ({ onSelectRole }: RoleSelectionScreenProps) 
       <div className="max-w-4xl w-full space-y-8 animate-fade-in">
         {/* Title */}
         <div className="text-center space-y-4">
-          <h1 className="text-5xl md:text-6xl font-bold">🌷 Tulipas Game</h1>
+          <h1 className="text-5xl md:text-6xl font-bold">🌷 Tulips Game</h1>
           <p className="text-lg text-muted-foreground">
-            Holanda, século XVII - A era da Tulipmania
+            Holland, 17th century - The Tulipmania era
           </p>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            Escolha seu papel nesta história de especulação e comércio
+            Choose your role in this story of speculation and trade
           </p>
         </div>
 
@@ -28,26 +28,26 @@ export const RoleSelectionScreen = ({ onSelectRole }: RoleSelectionScreenProps) 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer border-2 hover:border-primary/50">
             <CardHeader className="text-center pb-4">
               <div className="text-6xl mb-4">👩‍🌾</div>
-              <CardTitle className="text-2xl">Camponesa</CardTitle>
-              <CardDescription>Cultive e venda tulipas</CardDescription>
+              <CardTitle className="text-2xl">Farmer</CardTitle>
+              <CardDescription>Grow and sell tulips</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2 text-sm">
                 <p className="flex items-start gap-2">
                   <span className="text-lg">🌱</span>
-                  <span>Plante e cultive tulipas em seu campo</span>
+                  <span>Plant and grow tulips in your field</span>
                 </p>
                 <p className="flex items-start gap-2">
                   <span className="text-lg">⏱️</span>
-                  <span>Aguarde o crescimento e colha no momento certo</span>
+                  <span>Wait for growth and harvest at the right time</span>
                 </p>
                 <p className="flex items-start gap-2">
                   <span className="text-lg">💰</span>
-                  <span>Venda para mercadores pelo melhor preço</span>
+                  <span>Sell to merchants at the best price</span>
                 </p>
                 <p className="flex items-start gap-2">
                   <span className="text-lg">🎯</span>
-                  <span>Foco em produção e timing de venda</span>
+                  <span>Focus on production and selling timing</span>
                 </p>
               </div>
               <Button 
@@ -55,7 +55,7 @@ export const RoleSelectionScreen = ({ onSelectRole }: RoleSelectionScreenProps) 
                 className="w-full"
                 size="lg"
               >
-                Jogar como Camponesa
+                Play as Farmer
               </Button>
             </CardContent>
           </Card>
@@ -64,26 +64,26 @@ export const RoleSelectionScreen = ({ onSelectRole }: RoleSelectionScreenProps) 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer border-2 hover:border-primary/50">
             <CardHeader className="text-center pb-4">
               <div className="text-6xl mb-4">🧔‍♂️</div>
-              <CardTitle className="text-2xl">Mercador</CardTitle>
-              <CardDescription>Compre barato, venda caro</CardDescription>
+              <CardTitle className="text-2xl">Merchant</CardTitle>
+              <CardDescription>Buy low, sell high</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2 text-sm">
                 <p className="flex items-start gap-2">
                   <span className="text-lg">📊</span>
-                  <span>Controle preços de compra e venda</span>
+                  <span>Control buy and sell prices</span>
                 </p>
                 <p className="flex items-start gap-2">
                   <span className="text-lg">🤝</span>
-                  <span>Negocie com fazendeiros e clientes</span>
+                  <span>Negotiate with farmers and clients</span>
                 </p>
                 <p className="flex items-start gap-2">
                   <span className="text-lg">⚖️</span>
-                  <span>Gerencie estoque e reputação</span>
+                  <span>Manage inventory and reputation</span>
                 </p>
                 <p className="flex items-start gap-2">
                   <span className="text-lg">🎯</span>
-                  <span>Foco em estratégia e especulação</span>
+                  <span>Focus on strategy and speculation</span>
                 </p>
               </div>
               <Button 
@@ -91,7 +91,7 @@ export const RoleSelectionScreen = ({ onSelectRole }: RoleSelectionScreenProps) 
                 className="w-full"
                 size="lg"
               >
-                Jogar como Mercador
+                Play as Merchant
               </Button>
             </CardContent>
           </Card>
@@ -100,10 +100,10 @@ export const RoleSelectionScreen = ({ onSelectRole }: RoleSelectionScreenProps) 
         {/* Educational Note */}
         <div className="text-center text-xs text-muted-foreground max-w-2xl mx-auto px-4 py-6 bg-muted/30 rounded-lg">
           <p className="mb-2">
-            ⚠️ <strong>Aviso:</strong> Este é um jogo educativo sobre a bolha especulativa das tulipas de 1637
+            ⚠️ <strong>Warning:</strong> This is an educational game about the 1637 tulip speculative bubble
           </p>
           <p>
-            Ambos os papéis enfrentarão o colapso do mercado. O objetivo é sobreviver e aprender sobre especulação financeira.
+            Both roles will face the market collapse. The goal is to survive and learn about financial speculation.
           </p>
         </div>
       </div>

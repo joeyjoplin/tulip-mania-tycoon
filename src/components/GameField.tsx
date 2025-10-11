@@ -70,7 +70,7 @@ export const GameField = ({ onHarvest, coins, onSpendCoins }: GameFieldProps) =>
 
   return (
     <div className="w-full">
-      <h2 className="text-xl mb-4 text-center">🌷 Seu Campo de Tulipas</h2>
+      <h2 className="text-xl mb-4 text-center">🌷 Your Tulip Field</h2>
       <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
         {slots.map((slot) => (
           <div
@@ -108,7 +108,7 @@ export const GameField = ({ onHarvest, coins, onSpendCoins }: GameFieldProps) =>
         ))}
       </div>
       <p className="text-center mt-4 text-xs">
-        💰 Plantar: {PLANT_COST} moedas | ⏱️ Crescimento: 5s
+        💰 Plant: {PLANT_COST} coins | ⏱️ Growth: 5s
       </p>
     </div>
   );

@@ -72,7 +72,7 @@ const Index = () => {
   const generateOffer = (): Offer => {
     const isFarmer = Math.random() > 0.5;
     const farmerNames = ["Hans", "Pieter", "Jan", "Willem", "Dirk"];
-    const clientNames = ["Burgomaster", "Comerciante Rico", "Nobre", "Banqueiro"];
+    const clientNames = ["Burgomaster", "Wealthy Merchant", "Noble", "Banker"];
     
     if (isFarmer) {
       return {
@@ -97,22 +97,22 @@ const Index = () => {
   const generateNewsEvent = (currentDay: number, currentHype: number): string => {
     if (currentDay >= 25) {
       const panicNews = [
-        "💥 Rumores de colapso se espalham!",
-        "😰 Investidores em pânico começam a vender!",
-        "📉 Sinais de saturação do mercado!"
+        "💥 Collapse rumors are spreading!",
+        "😰 Panicked investors start selling!",
+        "📉 Signs of market saturation!"
       ];
       return panicNews[Math.floor(Math.random() * panicNews.length)];
     } else if (currentDay >= 20) {
-      return "⚠️ Analistas questionam sustentabilidade dos preços";
+      return "⚠️ Analysts question price sustainability";
     } else if (currentDay >= 15) {
       const hypeNews = [
-        "🔥 Tulipmania atinge novo pico!",
-        "💰 Fortunas sendo feitas com tulipas!",
-        "✨ Nobreza paga fortunas por tulipas raras!"
+        "🔥 Tulipmania reaches new peak!",
+        "💰 Fortunes being made with tulips!",
+        "✨ Nobility pays fortunes for rare tulips!"
       ];
       return hypeNews[Math.floor(Math.random() * hypeNews.length)];
     } else if (currentHype > 70) {
-      return "📈 Demanda por tulipas cresce exponencialmente!";
+      return "📈 Tulip demand grows exponentially!";
     }
     return "";
   };
@@ -164,20 +164,20 @@ const Index = () => {
             ? coins >= 0 && reputation >= SURVIVAL_REPUTATION 
             : coins >= 0;
           setIsWin(survived);
-          toast.error("💥 O mercado colapsou!", {
-            description: survived ? "Mas você sobreviveu!" : "As tulipas não valem mais nada..."
+          toast.error("💥 The market collapsed!", {
+            description: survived ? "But you survived!" : "Tulips are now worth almost nothing..."
           });
         }
         
         if (newDay === 15) {
-          toast.warning("⚠️ O mercado está muito volátil...", {
-            description: "Será que isso pode continuar?"
+          toast.warning("⚠️ The market is very volatile...", {
+            description: "Can this continue?"
           });
         }
         
         if (newDay === 25) {
-          toast.error("🔴 Sinais de pânico no mercado!", {
-            description: "Alguns investidores estão vendendo tudo..."
+          toast.error("🔴 Signs of panic in the market!", {
+            description: "Some investors are selling everything..."
           });
         }
         
@@ -204,8 +204,8 @@ const Index = () => {
     if (coins >= WINNING_COINS && !gameOver && day < CRASH_DAY) {
       setGameOver(true);
       setIsWin(true);
-      toast.success("🎉 Você venceu!", {
-        description: `Acumulou ${coins} florins antes do crash!`
+      toast.success("🎉 You won!", {
+        description: `Accumulated ${coins} florins before the crash!`
       });
     }
   }, [coins, gameOver, day]);
@@ -221,11 +221,11 @@ const Index = () => {
         setCoins(c => c - totalCost);
         setStock(s => s + offer.quantity);
         setReputation(r => Math.min(100, r + 2)); // Good deal increases reputation
-        toast.success(`✅ Comprou ${offer.quantity} tulipas de ${offer.name}!`, {
-          description: `Custo: ${totalCost} florins`
+        toast.success(`✅ Bought ${offer.quantity} tulips from ${offer.name}!`, {
+          description: `Cost: ${totalCost} florins`
         });
       } else {
-        toast.error("💸 Florins insuficientes!");
+        toast.error("💸 Insufficient florins!");
         setReputation(r => Math.max(0, r - 5)); // Rejecting due to lack of funds hurts reputation
       }
     } else {
@@ -235,11 +235,11 @@ const Index = () => {
         setCoins(c => c + earnings);
         setStock(s => s - offer.quantity);
         setReputation(r => Math.min(100, r + 3)); // Good sale increases reputation more
-        toast.success(`✅ Vendeu ${offer.quantity} tulipas para ${offer.name}!`, {
-          description: `Ganhou: ${earnings} florins`
+        toast.success(`✅ Sold ${offer.quantity} tulips to ${offer.name}!`, {
+          description: `Earned: ${earnings} florins`
         });
       } else {
-        toast.error("🌷 Estoque insuficiente!");
+        toast.error("🌷 Insufficient stock!");
         setReputation(r => Math.max(0, r - 5)); // Can't fulfill order hurts reputation
       }
     }
@@ -260,11 +260,11 @@ const Index = () => {
     if (coins >= HOLD_STOCK_COST) {
       setCoins(c => c - HOLD_STOCK_COST);
       setStockProtected(true);
-      toast.success("🛡️ Estoque protegido!", {
-        description: "Decay reduzido para 4% por 1 dia"
+      toast.success("🛡️ Stock protected!", {
+        description: "Decay reduced to 4% for 1 day"
       });
     } else {
-      toast.error("💸 Florins insuficientes!");
+      toast.error("💸 Insufficient florins!");
     }
   };
 
@@ -274,11 +274,11 @@ const Index = () => {
     if (stock > 0 && !isFlashSaleActive) {
       setIsFlashSaleActive(true);
       setAskPrice(Math.floor(askPrice * 0.8)); // 20% discount
-      toast.success("⚡ Promoção ativada!", {
-        description: "Preço de venda reduzido por 1 dia"
+      toast.success("⚡ Sale activated!", {
+        description: "Sell price reduced for 1 day"
       });
     } else if (stock === 0) {
-      toast.error("🌷 Sem estoque para promoção!");
+      toast.error("🌷 No stock for sale!");
     }
   };
 
@@ -286,8 +286,8 @@ const Index = () => {
   const handleHarvest = (count: number) => {
     if (selectedRole !== "farmer") return;
     setStock(prev => prev + count);
-    toast.success("🌷 Tulipa colhida!", {
-      description: "Adicionada ao estoque!"
+    toast.success("🌷 Tulip harvested!", {
+      description: "Added to stock!"
     });
   };
 
@@ -299,7 +299,7 @@ const Index = () => {
   // Sell all stock (farmer sells directly at market price)
   const handleSell = () => {
     if (stock === 0) {
-      toast.error("🌷 Sem tulipas no estoque!");
+      toast.error("🌷 No tulips in stock!");
       return;
     }
     
@@ -307,8 +307,8 @@ const Index = () => {
     const earnings = stock * sellPrice;
     setCoins(prev => prev + earnings);
     setStock(0);
-    toast.success(`💰 Vendeu todo o estoque!`, {
-      description: `Ganhou ${earnings} florins`
+    toast.success(`💰 Sold all stock!`, {
+      description: `Earned ${earnings} florins`
     });
   };
 
@@ -347,9 +347,9 @@ const Index = () => {
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <header className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl mb-2">🌷 Tulipas Game</h1>
+          <h1 className="text-4xl md:text-5xl mb-2">🌷 Tulips Game</h1>
           <p className="text-xs md:text-sm text-muted-foreground">
-            Holanda, século XVII - A era da Tulipmania
+            Holland, 17th century - The Tulipmania era
           </p>
         </header>
 
@@ -359,25 +359,25 @@ const Index = () => {
             {selectedRole === "farmer" ? (
               <>
                 <p className="text-xs mb-2">
-                  👩‍🌾 Você é uma camponesa! Plante e colha tulipas, depois venda pelo melhor preço!
+                  👩‍🌾 You're a farmer! Plant and harvest tulips, then sell at the best price!
                 </p>
                 <p className="text-xs text-muted-foreground mb-2">
-                  🎯 Objetivo: Acumular {WINNING_COINS} florins antes do dia {CRASH_DAY}
+                  🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
                 </p>
                 <p className="text-xs text-muted-foreground mb-2">
-                  💡 Dica: Plante no campo à esquerda e venda quando o preço estiver alto!
+                  💡 Tip: Plant in the left field and sell when the price is high!
                 </p>
               </>
             ) : (
               <>
                 <p className="text-xs mb-2">
-                  🧔‍♂️ Você é um mercador! Compre tulipas de fazendeiros e venda para clientes!
+                  🧔‍♂️ You're a merchant! Buy tulips from farmers and sell to clients!
                 </p>
                 <p className="text-xs text-muted-foreground mb-2">
-                  🎯 Objetivo: Acumular {WINNING_COINS} florins antes do dia {CRASH_DAY}
+                  🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
                 </p>
                 <p className="text-xs text-muted-foreground mb-2">
-                  ⚠️ Custos diários: {SHOP_COST} florins (loja) + {STORAGE_COST_PER_TULIP} florins/tulipa (armazenagem)
+                  ⚠️ Daily costs: {SHOP_COST} florins (shop) + {STORAGE_COST_PER_TULIP} florins/tulip (storage)
                 </p>
               </>
             )}
@@ -385,7 +385,7 @@ const Index = () => {
               onClick={() => setShowTutorial(false)}
               className="text-xs underline hover:no-underline"
             >
-              Entendi!
+              Got it!
             </button>
           </div>
         )}
@@ -446,18 +446,18 @@ const Index = () => {
               <>
                 {/* Farmer: Market info */}
                 <div className="pixel-border bg-card p-6 space-y-4">
-                  <h3 className="text-lg font-semibold">📊 Painel do Mercado</h3>
+                  <h3 className="text-lg font-semibold">📊 Market Panel</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Preço atual:</span>
+                      <span className="text-sm text-muted-foreground">Current price:</span>
                       <span className="text-2xl font-bold text-primary">{currentPrice}₣</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Seu estoque:</span>
+                      <span className="text-sm text-muted-foreground">Your stock:</span>
                       <span className="text-xl font-semibold">{stock} 🌷</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Valor total:</span>
+                      <span className="text-sm text-muted-foreground">Total value:</span>
                       <span className="text-xl font-semibold text-green-600">{stock * currentPrice}₣</span>
                     </div>
                   </div>
@@ -497,19 +497,19 @@ const Index = () => {
           <p className="text-xs">
             {selectedRole === "farmer" ? (
               <>
-                {day < 10 && "💡 Plante regularmente e venda quando o preço subir."}
-                {day >= 10 && day < 15 && "📈 Os preços estão subindo! Considere guardar estoque."}
-                {day >= 15 && day < 20 && "⚖️ Nem todo crescimento é sustentável - esteja pronto para vender!"}
-                {day >= 20 && day < 25 && "🤔 O mercado está instável... talvez seja hora de vender tudo."}
-                {day >= 25 && "⚠️ A ganância pode custar caro... venda enquanto há tempo!"}
+                {day < 10 && "💡 Plant regularly and sell when the price rises."}
+                {day >= 10 && day < 15 && "📈 Prices are rising! Consider holding stock."}
+                {day >= 15 && day < 20 && "⚖️ Not all growth is sustainable - be ready to sell!"}
+                {day >= 20 && day < 25 && "🤔 The market is unstable... maybe it's time to sell everything."}
+                {day >= 25 && "⚠️ Greed can be costly... sell while there's time!"}
               </>
             ) : (
               <>
-                {day < 10 && "💡 Spread alto reduz volume; spread baixo aumenta risco."}
-                {day >= 10 && day < 15 && "💡 Compre barato de fazendeiros, venda caro para clientes."}
-                {day >= 15 && day < 20 && "⚖️ Nem todo crescimento é sustentável - gerencie seu estoque!"}
-                {day >= 20 && day < 25 && "🤔 Reputação afeta o número de ofertas que você recebe."}
-                {day >= 25 && "⚠️ A ganância pode custar caro... considere vender tudo!"}
+                {day < 10 && "💡 High spread reduces volume; low spread increases risk."}
+                {day >= 10 && day < 15 && "💡 Buy cheap from farmers, sell high to clients."}
+                {day >= 15 && day < 20 && "⚖️ Not all growth is sustainable - manage your stock!"}
+                {day >= 20 && day < 25 && "🤔 Reputation affects the number of offers you receive."}
+                {day >= 25 && "⚠️ Greed can be costly... consider selling everything!"}
               </>
             )}
           </p>
@@ -517,7 +517,7 @@ const Index = () => {
 
         {/* Footer */}
         <footer className="text-center text-xs text-muted-foreground">
-          <p>Um jogo educativo sobre a bolha das tulipas de 1637</p>
+          <p>An educational game about the 1637 tulip bubble</p>
         </footer>
       </div>
 

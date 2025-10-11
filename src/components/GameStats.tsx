@@ -30,14 +30,14 @@ export const GameStats = ({
       </div>
       
       <div className="pixel-border bg-card p-2 text-center">
-        <div className="text-[10px] mb-1">📅 Dia</div>
+        <div className="text-[10px] mb-1">📅 Day</div>
         <div className="text-lg font-bold">
           {day}
         </div>
       </div>
       
       <div className="pixel-border bg-card p-2 text-center">
-        <div className="text-[10px] mb-1">🌷 Estoque</div>
+        <div className="text-[10px] mb-1">🌷 Stock</div>
         <div className="text-lg font-bold text-primary">
           {stock}
         </div>
@@ -46,7 +46,7 @@ export const GameStats = ({
       {/* Reputation - only show for merchant */}
       {reputation !== undefined && (
         <div className="pixel-border bg-card p-2 text-center">
-          <div className="text-[10px] mb-1">⭐ Reputação</div>
+          <div className="text-[10px] mb-1">⭐ Reputation</div>
           <div className="text-lg font-bold">
             {reputation}
           </div>
@@ -54,7 +54,7 @@ export const GameStats = ({
       )}
 
       <div className="pixel-border bg-card p-2 text-center">
-        <div className="text-[10px] mb-1">📊 Índice</div>
+        <div className="text-[10px] mb-1">📊 Index</div>
         <div className={`text-lg font-bold ${priceColor} transition-colors`}>
           {marketPrice} {priceArrow}
         </div>

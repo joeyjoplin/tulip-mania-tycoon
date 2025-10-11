@@ -27,12 +27,12 @@ export const PricingControls = ({
 
   return (
     <div className="pixel-border bg-card/50 p-4 space-y-3">
-      <h3 className="text-xs text-center mb-2">⚖️ Preços de Compra/Venda</h3>
+      <h3 className="text-xs text-center mb-2">⚖️ Buy/Sell Prices</h3>
       
-      {/* Bid Price (Compra) */}
+      {/* Bid Price (Buy) */}
       <div className="space-y-2">
         <div className="flex justify-between items-center text-xs">
-          <span>Compra (Bid):</span>
+          <span>Buy (Bid):</span>
           <span className="font-bold text-green-400">{bidPrice} 💰</span>
         </div>
         <div className="flex gap-2">
@@ -67,10 +67,10 @@ export const PricingControls = ({
         </div>
       </div>
 
-      {/* Ask Price (Venda) */}
+      {/* Ask Price (Sell) */}
       <div className="space-y-2">
         <div className="flex justify-between items-center text-xs">
-          <span>Venda (Ask):</span>
+          <span>Sell (Ask):</span>
           <span className="font-bold text-red-400">{askPrice} 💰</span>
         </div>
         <div className="flex gap-2">
@@ -112,11 +112,11 @@ export const PricingControls = ({
           <span className="font-bold">{spread} 💰</span>
         </div>
         <div className="flex justify-between text-[10px]">
-          <span>Margem:</span>
+          <span>Margin:</span>
           <span className="font-bold text-accent">{profitMargin}%</span>
         </div>
         <div className="flex justify-between text-[10px]">
-          <span>Índice:</span>
+          <span>Index:</span>
           <span className="font-bold">{marketPrice} 💰</span>
         </div>
       </div>

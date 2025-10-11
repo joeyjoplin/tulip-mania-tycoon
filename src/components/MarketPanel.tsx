@@ -32,7 +32,7 @@ export const MarketPanel = ({
   return (
     <div className="w-full">
       <div className="pixel-border bg-card p-6 space-y-4">
-        <h2 className="text-xl text-center">🏛️ Mercado de Tulipas</h2>
+        <h2 className="text-xl text-center">🏛️ Tulip Market</h2>
         
         <MerchantCharacter 
           day={day} 
@@ -41,13 +41,13 @@ export const MarketPanel = ({
         />
         
         <div className="pixel-border bg-muted/30 p-4 text-center">
-          <p className="text-xs text-muted-foreground mb-1">Preço Atual</p>
+          <p className="text-xs text-muted-foreground mb-1">Current Price</p>
           <p className={`text-3xl font-bold transition-all duration-300 ${
             animatePrice ? 'text-accent animate-pulse-price' : ''
           }`}>
             💰 {currentPrice}
           </p>
-          <p className="text-xs text-muted-foreground mt-1">moedas por tulipa</p>
+          <p className="text-xs text-muted-foreground mt-1">coins per tulip</p>
         </div>
         
         {/* Simple price chart */}
@@ -66,12 +66,12 @@ export const MarketPanel = ({
 
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span>Tulipas no estoque:</span>
+            <span>Tulips in stock:</span>
             <span className="font-bold">{tulipsInInventory} 🌷</span>
           </div>
           
           <div className="flex justify-between text-sm">
-            <span>Valor total:</span>
+            <span>Total value:</span>
             <span className="font-bold text-accent">
               {tulipsInInventory * currentPrice} 💰
             </span>
@@ -82,7 +82,7 @@ export const MarketPanel = ({
             disabled={tulipsInInventory === 0}
             className="pixel-button w-full bg-accent text-accent-foreground hover:bg-accent/90"
           >
-            Vender Tudo
+            Sell All
           </Button>
         </div>
 

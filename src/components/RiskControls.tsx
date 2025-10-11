@@ -17,16 +17,16 @@ export const RiskControls = ({
 }: RiskControlsProps) => {
   return (
     <div className="pixel-border bg-card/50 p-3 space-y-2">
-      <h3 className="text-xs text-center mb-2">🎲 Gestão de Risco</h3>
+      <h3 className="text-xs text-center mb-2">🎲 Risk Management</h3>
       
       <Button
         onClick={onHoldStock}
         disabled={!canHoldStock}
         className="pixel-button w-full text-xs py-2 h-auto"
         variant="outline"
-        title="Reduz decay para 4%, custa 50 florins"
+        title="Reduces decay to 4%, costs 50 florins"
       >
-        🛡️ Proteger Estoque (-50 💰)
+        🛡️ Protect Stock (-50 💰)
       </Button>
 
       <Button
@@ -34,9 +34,9 @@ export const RiskControls = ({
         disabled={!canFlashSale || isFlashSaleActive}
         className="pixel-button w-full text-xs py-2 h-auto"
         variant="outline"
-        title="Reduz preço de venda em 20% por 1 dia"
+        title="Reduces sell price by 20% for 1 day"
       >
-        ⚡ {isFlashSaleActive ? "Promoção Ativa!" : "Promoção Relâmpago"}
+        ⚡ {isFlashSaleActive ? "Sale Active!" : "Flash Sale"}
       </Button>
     </div>
   );
