@@ -117,22 +117,24 @@ const Index = () => {
     return "";
   };
 
-  // Day advancement with daily costs and decay
+  // Day advancement with daily costs and decay (only for merchant)
   useEffect(() => {
     const dayInterval = setInterval(() => {
       setDay(prev => {
         const newDay = prev + 1;
         
-        // Apply daily costs
-        const storageCost = stock * STORAGE_COST_PER_TULIP;
-        const totalDailyCost = SHOP_COST + storageCost;
-        setCoins(c => Math.max(0, c - totalDailyCost));
-        
-        // Apply stock decay (8% or 4% if protected)
-        const decayRate = stockProtected ? 0.04 : DAILY_DECAY;
-        setStock(s => Math.floor(s * (1 - decayRate)));
-        setStockProtected(false); // Protection lasts only one day
-        setIsFlashSaleActive(false); // Flash sale lasts only one day
+        // Apply daily costs only for merchant
+        if (selectedRole === "merchant") {
+          const storageCost = stock * STORAGE_COST_PER_TULIP;
+          const totalDailyCost = SHOP_COST + storageCost;
+          setCoins(c => Math.max(0, c - totalDailyCost));
+          
+          // Apply stock decay (8% or 4% if protected)
+          const decayRate = stockProtected ? 0.04 : DAILY_DECAY;
+          setStock(s => Math.floor(s * (1 - decayRate)));
+          setStockProtected(false); // Protection lasts only one day
+          setIsFlashSaleActive(false); // Flash sale lasts only one day
+        }
         
         // Update hype based on day
         if (newDay < 15) {
@@ -150,15 +152,17 @@ const Index = () => {
           setTimeout(() => setNewsEvent(""), 6000); // Clear after 6 seconds
         }
         
-        // Generate new offers
-        if (Math.random() > 0.3) { // 70% chance to generate offer
+        // Generate new offers only for merchant
+        if (selectedRole === "merchant" && Math.random() > 0.3) { // 70% chance to generate offer
           setOffers(prev => [...prev, generateOffer()]);
         }
         
         // Market events
         if (newDay === CRASH_DAY) {
           setGameOver(true);
-          const survived = coins >= 0 && reputation >= SURVIVAL_REPUTATION;
+          const survived = selectedRole === "merchant" 
+            ? coins >= 0 && reputation >= SURVIVAL_REPUTATION 
+            : coins >= 0;
           setIsWin(survived);
           toast.error("💥 O mercado colapsou!", {
             description: survived ? "Mas você sobreviveu!" : "As tulipas não valem mais nada..."
@@ -182,7 +186,7 @@ const Index = () => {
     }, 8000); // Advance day every 8 seconds
 
     return () => clearInterval(dayInterval);
-  }, [stock, stockProtected, hype, coins, reputation]);
+  }, [stock, stockProtected, hype, coins, reputation, selectedRole]);
 
   // Price update with hype influence
   useEffect(() => {
@@ -206,8 +210,10 @@ const Index = () => {
     }
   }, [coins, gameOver, day]);
 
-  // Handle accepting an offer
+  // Handle accepting an offer (merchant only)
   const handleAcceptOffer = (offer: Offer) => {
+    if (selectedRole !== "merchant") return;
+    
     if (offer.type === "farmer") {
       // Buy from farmer
       const totalCost = offer.price * offer.quantity;
@@ -241,14 +247,16 @@ const Index = () => {
     setOffers(prev => prev.filter(o => o.id !== offer.id));
   };
 
-  // Handle rejecting an offer
+  // Handle rejecting an offer (merchant only)
   const handleRejectOffer = (offerId: string) => {
+    if (selectedRole !== "merchant") return;
     setOffers(prev => prev.filter(o => o.id !== offerId));
     setReputation(r => Math.max(0, r - 1)); // Small reputation penalty
   };
 
-  // Risk management: Hold Stock (reduce decay)
+  // Risk management: Hold Stock (merchant only)
   const handleHoldStock = () => {
+    if (selectedRole !== "merchant") return;
     if (coins >= HOLD_STOCK_COST) {
       setCoins(c => c - HOLD_STOCK_COST);
       setStockProtected(true);
@@ -260,8 +268,9 @@ const Index = () => {
     }
   };
 
-  // Risk management: Flash Sale (temporary price reduction)
+  // Risk management: Flash Sale (merchant only)
   const handleFlashSale = () => {
+    if (selectedRole !== "merchant") return;
     if (stock > 0 && !isFlashSaleActive) {
       setIsFlashSaleActive(true);
       setAskPrice(Math.floor(askPrice * 0.8)); // 20% discount
@@ -273,8 +282,9 @@ const Index = () => {
     }
   };
 
-  // Keep old farming mechanics for continuity
+  // Farming mechanics (farmer only)
   const handleHarvest = (count: number) => {
+    if (selectedRole !== "farmer") return;
     setStock(prev => prev + count);
     toast.success("🌷 Tulipa colhida!", {
       description: "Adicionada ao estoque!"
@@ -282,15 +292,19 @@ const Index = () => {
   };
 
   const handleSpendCoins = (amount: number) => {
+    if (selectedRole !== "farmer") return;
     setCoins(prev => prev - amount);
   };
 
+  // Sell all stock (farmer sells directly at market price)
   const handleSell = () => {
     if (stock === 0) {
       toast.error("🌷 Sem tulipas no estoque!");
       return;
     }
-    const earnings = stock * askPrice;
+    
+    const sellPrice = selectedRole === "farmer" ? currentPrice : askPrice;
+    const earnings = stock * sellPrice;
     setCoins(prev => prev + earnings);
     setStock(0);
     toast.success(`💰 Vendeu todo o estoque!`, {
@@ -379,12 +393,12 @@ const Index = () => {
         {/* News Panel */}
         <NewsPanel newsEvent={newsEvent} />
 
-        {/* Stats */}
+        {/* Stats - Show different stats based on role */}
         <GameStats 
           coins={coins} 
           day={day} 
           stock={stock}
-          reputation={reputation}
+          reputation={selectedRole === "merchant" ? reputation : undefined}
           marketPrice={currentPrice}
           hype={hype}
           priceChange={priceHistory.length > 1 ? currentPrice - priceHistory[priceHistory.length - 2] : 0}
@@ -392,30 +406,20 @@ const Index = () => {
 
         {/* Main Game Area */}
         <div className="grid md:grid-cols-3 gap-4">
-          {/* Left: Farming or Risk Controls */}
+          {/* Left Column */}
           <div className="space-y-4">
             {selectedRole === "farmer" ? (
               <>
+                {/* Farmer: Planting field */}
                 <GameField
                   onHarvest={handleHarvest}
                   coins={coins}
                   onSpendCoins={handleSpendCoins}
-                />
-                <MarketPanel
-                  currentPrice={currentPrice}
-                  tulipsInInventory={stock}
-                  onSell={handleSell}
-                  day={day}
-                  priceHistory={priceHistory}
                 />
               </>
             ) : (
               <>
-                <GameField
-                  onHarvest={handleHarvest}
-                  coins={coins}
-                  onSpendCoins={handleSpendCoins}
-                />
+                {/* Merchant: Risk controls */}
                 <RiskControls
                   onHoldStock={handleHoldStock}
                   onFlashSale={handleFlashSale}
@@ -427,31 +431,46 @@ const Index = () => {
             )}
           </div>
           
-          {/* Center: Offers (Merchant only) or Market (Farmer) */}
+          {/* Center Column */}
           <div>
             {selectedRole === "merchant" ? (
-              <OffersList
-                offers={offers}
-                onAccept={handleAcceptOffer}
-                onReject={handleRejectOffer}
-              />
+              <>
+                {/* Merchant: Offers list */}
+                <OffersList
+                  offers={offers}
+                  onAccept={handleAcceptOffer}
+                  onReject={handleRejectOffer}
+                />
+              </>
             ) : (
-              <div className="pixel-border bg-card p-6 text-center space-y-4">
-                <h3 className="text-lg font-semibold">📊 Mercado</h3>
-                <p className="text-sm text-muted-foreground">
-                  Acompanhe os preços e venda suas tulipas no momento certo!
-                </p>
-                <div className="text-2xl">
-                  Preço atual: <span className="text-primary font-bold">{currentPrice}₣</span>
+              <>
+                {/* Farmer: Market info */}
+                <div className="pixel-border bg-card p-6 space-y-4">
+                  <h3 className="text-lg font-semibold">📊 Painel do Mercado</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Preço atual:</span>
+                      <span className="text-2xl font-bold text-primary">{currentPrice}₣</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Seu estoque:</span>
+                      <span className="text-xl font-semibold">{stock} 🌷</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Valor total:</span>
+                      <span className="text-xl font-semibold text-green-600">{stock * currentPrice}₣</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
-          {/* Right: Market (Merchant) or Tips (Farmer) */}
+          {/* Right Column */}
           <div className="space-y-4">
             {selectedRole === "merchant" ? (
               <>
+                {/* Merchant: Pricing controls and market panel */}
                 <PricingControls
                   bidPrice={bidPrice}
                   askPrice={askPrice}
@@ -459,25 +478,17 @@ const Index = () => {
                   onBidChange={setBidPrice}
                   onAskChange={setAskPrice}
                 />
-                <MarketPanel
-                  currentPrice={currentPrice}
-                  tulipsInInventory={stock}
-                  onSell={handleSell}
-                  day={day}
-                  priceHistory={priceHistory}
-                />
               </>
-            ) : (
-              <div className="pixel-border bg-card p-6 space-y-4">
-                <h3 className="text-lg font-semibold">💡 Dicas</h3>
-                <div className="space-y-2 text-sm">
-                  <p>🌱 Plante tulipas no campo</p>
-                  <p>⏱️ Espere crescerem (barra de progresso)</p>
-                  <p>💰 Venda quando o preço estiver alto</p>
-                  <p>⚠️ Cuidado: o mercado pode colapsar!</p>
-                </div>
-              </div>
-            )}
+            ) : null}
+            
+            {/* Market panel for both roles */}
+            <MarketPanel
+              currentPrice={currentPrice}
+              tulipsInInventory={stock}
+              onSell={handleSell}
+              day={day}
+              priceHistory={priceHistory}
+            />
           </div>
         </div>
 

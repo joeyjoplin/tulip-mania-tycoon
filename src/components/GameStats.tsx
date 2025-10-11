@@ -2,7 +2,7 @@ interface GameStatsProps {
   coins: number;
   day: number;
   stock: number;
-  reputation: number;
+  reputation?: number; // Optional for farmer role
   marketPrice: number;
   hype: number;
   priceChange: number;
@@ -21,7 +21,7 @@ export const GameStats = ({
   const priceArrow = priceChange > 0 ? "↑" : priceChange < 0 ? "↓" : "→";
 
   return (
-    <div className="w-full grid grid-cols-2 md:grid-cols-6 gap-2">
+    <div className={`w-full grid gap-2 ${reputation !== undefined ? 'grid-cols-2 md:grid-cols-6' : 'grid-cols-2 md:grid-cols-5'}`}>
       <div className="pixel-border bg-card p-2 text-center">
         <div className="text-[10px] mb-1">💰 Florins</div>
         <div className="text-lg font-bold text-accent animate-coin-float">
@@ -43,12 +43,15 @@ export const GameStats = ({
         </div>
       </div>
 
-      <div className="pixel-border bg-card p-2 text-center">
-        <div className="text-[10px] mb-1">⭐ Reputação</div>
-        <div className="text-lg font-bold">
-          {reputation}
+      {/* Reputation - only show for merchant */}
+      {reputation !== undefined && (
+        <div className="pixel-border bg-card p-2 text-center">
+          <div className="text-[10px] mb-1">⭐ Reputação</div>
+          <div className="text-lg font-bold">
+            {reputation}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="pixel-border bg-card p-2 text-center">
         <div className="text-[10px] mb-1">📊 Índice</div>
