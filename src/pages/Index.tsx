@@ -7,6 +7,7 @@ import { PricingControls } from "@/components/PricingControls";
 import { OffersList, Offer } from "@/components/OffersList";
 import { NewsPanel } from "@/components/NewsPanel";
 import { RiskControls } from "@/components/RiskControls";
+import { RoleSelectionScreen, GameRole } from "@/components/RoleSelectionScreen";
 import { toast } from "sonner";
 
 // Game constants
@@ -21,6 +22,9 @@ const HOLD_STOCK_COST = 50; // Cost to protect stock
 const SURVIVAL_REPUTATION = 60; // Minimum reputation for survival
 
 const Index = () => {
+  // Role selection state
+  const [selectedRole, setSelectedRole] = useState<GameRole | null>(null);
+  
   // Core game state
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [day, setDay] = useState(1);
@@ -295,6 +299,7 @@ const Index = () => {
   };
 
   const handleRestart = () => {
+    setSelectedRole(null); // Go back to role selection
     setCoins(INITIAL_COINS);
     setDay(1);
     setStock(0);
@@ -313,6 +318,16 @@ const Index = () => {
     setStockProtected(false);
   };
 
+  const handleRoleSelection = (role: GameRole) => {
+    setSelectedRole(role);
+    setShowTutorial(true);
+  };
+
+  // Show role selection screen if no role selected
+  if (!selectedRole) {
+    return <RoleSelectionScreen onSelectRole={handleRoleSelection} />;
+  }
+
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -327,15 +342,31 @@ const Index = () => {
         {/* Tutorial Toast */}
         {showTutorial && (
           <div className="pixel-border bg-primary/10 p-4 text-center animate-fade-in">
-            <p className="text-xs mb-2">
-              🧔‍♂️ Você é um mercador! Compre tulipas de fazendeiros e venda para clientes!
-            </p>
-            <p className="text-xs text-muted-foreground mb-2">
-              🎯 Objetivo: Acumular {WINNING_COINS} florins antes do dia {CRASH_DAY}
-            </p>
-            <p className="text-xs text-muted-foreground mb-2">
-              ⚠️ Custos diários: {SHOP_COST} florins (loja) + {STORAGE_COST_PER_TULIP} florins/tulipa (armazenagem)
-            </p>
+            {selectedRole === "farmer" ? (
+              <>
+                <p className="text-xs mb-2">
+                  👩‍🌾 Você é uma camponesa! Plante e colha tulipas, depois venda pelo melhor preço!
+                </p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  🎯 Objetivo: Acumular {WINNING_COINS} florins antes do dia {CRASH_DAY}
+                </p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  💡 Dica: Plante no campo à esquerda e venda quando o preço estiver alto!
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs mb-2">
+                  🧔‍♂️ Você é um mercador! Compre tulipas de fazendeiros e venda para clientes!
+                </p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  🎯 Objetivo: Acumular {WINNING_COINS} florins antes do dia {CRASH_DAY}
+                </p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  ⚠️ Custos diários: {SHOP_COST} florins (loja) + {STORAGE_COST_PER_TULIP} florins/tulipa (armazenagem)
+                </p>
+              </>
+            )}
             <button 
               onClick={() => setShowTutorial(false)}
               className="text-xs underline hover:no-underline"
@@ -361,60 +392,115 @@ const Index = () => {
 
         {/* Main Game Area */}
         <div className="grid md:grid-cols-3 gap-4">
-          {/* Left: Farming (optional) */}
+          {/* Left: Farming or Risk Controls */}
           <div className="space-y-4">
-            <GameField
-              onHarvest={handleHarvest}
-              coins={coins}
-              onSpendCoins={handleSpendCoins}
-            />
-            
-            <RiskControls
-              onHoldStock={handleHoldStock}
-              onFlashSale={handleFlashSale}
-              canHoldStock={coins >= HOLD_STOCK_COST}
-              canFlashSale={stock > 0}
-              isFlashSaleActive={isFlashSaleActive}
-            />
+            {selectedRole === "farmer" ? (
+              <>
+                <GameField
+                  onHarvest={handleHarvest}
+                  coins={coins}
+                  onSpendCoins={handleSpendCoins}
+                />
+                <MarketPanel
+                  currentPrice={currentPrice}
+                  tulipsInInventory={stock}
+                  onSell={handleSell}
+                  day={day}
+                  priceHistory={priceHistory}
+                />
+              </>
+            ) : (
+              <>
+                <GameField
+                  onHarvest={handleHarvest}
+                  coins={coins}
+                  onSpendCoins={handleSpendCoins}
+                />
+                <RiskControls
+                  onHoldStock={handleHoldStock}
+                  onFlashSale={handleFlashSale}
+                  canHoldStock={coins >= HOLD_STOCK_COST}
+                  canFlashSale={stock > 0}
+                  isFlashSaleActive={isFlashSaleActive}
+                />
+              </>
+            )}
           </div>
           
-          {/* Center: Offers */}
+          {/* Center: Offers (Merchant only) or Market (Farmer) */}
           <div>
-            <OffersList
-              offers={offers}
-              onAccept={handleAcceptOffer}
-              onReject={handleRejectOffer}
-            />
+            {selectedRole === "merchant" ? (
+              <OffersList
+                offers={offers}
+                onAccept={handleAcceptOffer}
+                onReject={handleRejectOffer}
+              />
+            ) : (
+              <div className="pixel-border bg-card p-6 text-center space-y-4">
+                <h3 className="text-lg font-semibold">📊 Mercado</h3>
+                <p className="text-sm text-muted-foreground">
+                  Acompanhe os preços e venda suas tulipas no momento certo!
+                </p>
+                <div className="text-2xl">
+                  Preço atual: <span className="text-primary font-bold">{currentPrice}₣</span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Right: Market */}
+          {/* Right: Market (Merchant) or Tips (Farmer) */}
           <div className="space-y-4">
-            <PricingControls
-              bidPrice={bidPrice}
-              askPrice={askPrice}
-              marketPrice={currentPrice}
-              onBidChange={setBidPrice}
-              onAskChange={setAskPrice}
-            />
-            
-            <MarketPanel
-              currentPrice={currentPrice}
-              tulipsInInventory={stock}
-              onSell={handleSell}
-              day={day}
-              priceHistory={priceHistory}
-            />
+            {selectedRole === "merchant" ? (
+              <>
+                <PricingControls
+                  bidPrice={bidPrice}
+                  askPrice={askPrice}
+                  marketPrice={currentPrice}
+                  onBidChange={setBidPrice}
+                  onAskChange={setAskPrice}
+                />
+                <MarketPanel
+                  currentPrice={currentPrice}
+                  tulipsInInventory={stock}
+                  onSell={handleSell}
+                  day={day}
+                  priceHistory={priceHistory}
+                />
+              </>
+            ) : (
+              <div className="pixel-border bg-card p-6 space-y-4">
+                <h3 className="text-lg font-semibold">💡 Dicas</h3>
+                <div className="space-y-2 text-sm">
+                  <p>🌱 Plante tulipas no campo</p>
+                  <p>⏱️ Espere crescerem (barra de progresso)</p>
+                  <p>💰 Venda quando o preço estiver alto</p>
+                  <p>⚠️ Cuidado: o mercado pode colapsar!</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Educational Tips */}
         <div className="pixel-border bg-muted/30 p-4 text-center">
           <p className="text-xs">
-            {day < 10 && "💡 Spread alto reduz volume; spread baixo aumenta risco."}
-            {day >= 10 && day < 15 && "💡 Compre barato de fazendeiros, venda caro para clientes."}
-            {day >= 15 && day < 20 && "⚖️ Nem todo crescimento é sustentável - gerencie seu estoque!"}
-            {day >= 20 && day < 25 && "🤔 Reputação afeta o número de ofertas que você recebe."}
-            {day >= 25 && "⚠️ A ganância pode custar caro... considere vender tudo!"}
+            {selectedRole === "farmer" ? (
+              <>
+                {day < 10 && "💡 Plante regularmente e venda quando o preço subir."}
+                {day >= 10 && day < 15 && "📈 Os preços estão subindo! Considere guardar estoque."}
+                {day >= 15 && day < 20 && "⚖️ Nem todo crescimento é sustentável - esteja pronto para vender!"}
+                {day >= 20 && day < 25 && "🤔 O mercado está instável... talvez seja hora de vender tudo."}
+                {day >= 25 && "⚠️ A ganância pode custar caro... venda enquanto há tempo!"}
+              </>
+            ) : (
+              <>
+                {day < 10 && "💡 Spread alto reduz volume; spread baixo aumenta risco."}
+                {day >= 10 && day < 15 && "💡 Compre barato de fazendeiros, venda caro para clientes."}
+                {day >= 15 && day < 20 && "⚖️ Nem todo crescimento é sustentável - gerencie seu estoque!"}
+                {day >= 20 && day < 25 && "🤔 Reputação afeta o número de ofertas que você recebe."}
+                {day >= 25 && "⚠️ A ganância pode custar caro... considere vender tudo!"}
+              </>
+            )}
           </p>
         </div>
 
