@@ -13,8 +13,8 @@ export const GameOverModal = ({ isWin, finalCoins, finalDay, onRestart }: GameOv
 
   if (showEducationalScreen) {
     return (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-        <div className="pixel-border bg-card p-8 max-w-2xl w-full space-y-6 animate-scale-in">
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div className="pixel-border bg-card p-8 max-w-3xl w-full space-y-6 animate-scale-in my-8">
           <h1 className="text-2xl text-center mb-4">
             🌷 Por que as Tulipas eram Especulativas?
           </h1>
@@ -51,14 +51,67 @@ export const GameOverModal = ({ isWin, finalCoins, finalDay, onRestart }: GameOv
               </p>
             </div>
 
+            {/* Modern Parallel with Memecoins */}
+            <div className="pixel-border bg-gradient-to-r from-orange-500/20 to-purple-500/20 p-4 border-2 border-orange-500/50">
+              <h3 className="font-bold mb-3 text-center text-base">
+                🪙 Tulipas de 1637 = Memecoins de 2024?
+              </h3>
+              
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <p className="font-bold text-accent text-center">🌷 Tulipas (1637)</p>
+                  <ul className="space-y-1 text-[11px]">
+                    <li>✓ Sem utilidade prática</li>
+                    <li>✓ Preço baseado em hype</li>
+                    <li>✓ "Todos estão comprando!"</li>
+                    <li>✓ Promessa de lucro rápido</li>
+                    <li>✓ FOMO (medo de ficar de fora)</li>
+                    <li>✓ Crash súbito e devastador</li>
+                  </ul>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="font-bold text-primary text-center">🚀 Memecoins (Hoje)</p>
+                  <ul className="space-y-1 text-[11px]">
+                    <li>✓ Sem utilidade prática</li>
+                    <li>✓ Preço baseado em hype</li>
+                    <li>✓ "To the moon! 🚀"</li>
+                    <li>✓ Promessa de lucro rápido</li>
+                    <li>✓ FOMO (medo de ficar de fora)</li>
+                    <li>✓ Rug pulls e crashes</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-muted">
+                <p className="text-center font-bold text-sm mb-2">
+                  📊 Os Padrões se Repetem
+                </p>
+                <p className="text-[11px] mb-2">
+                  <strong>Dogecoin, Shiba Inu, PEPE...</strong> são tokens sem função real, 
+                  cujo valor depende exclusivamente de <em>acreditar que outros vão comprar mais caro</em>.
+                </p>
+                <p className="text-[11px] mb-2">
+                  Assim como as tulipas, memecoins não geram renda, não têm utilidade prática, 
+                  e seu preço pode despencar a zero quando o hype acaba.
+                </p>
+                <p className="text-[11px] text-orange-500 font-bold">
+                  ⚠️ A diferença? Em 1637 levou meses. Hoje, um memecoin pode colapsar em horas.
+                </p>
+              </div>
+            </div>
+
             <div className="pixel-border bg-primary/20 p-4 text-center">
               <p className="font-bold text-sm mb-2">🎓 A Grande Lição</p>
-              <p>
+              <p className="mb-2">
                 Quando o preço de algo sobe apenas porque todos esperam que continue subindo, 
                 <strong className="text-accent"> não é investimento - é especulação</strong>.
               </p>
-              <p className="mt-2 text-muted-foreground">
+              <p className="text-muted-foreground text-[11px] mb-2">
                 E toda especulação, eventualmente, encontra a realidade.
+              </p>
+              <p className="text-[11px] font-bold mt-3 text-destructive">
+                💡 Seja em tulipas, memecoins ou NFTs - a história se repete porque a natureza humana não muda.
               </p>
             </div>
           </div>
