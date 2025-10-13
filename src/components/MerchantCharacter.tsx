@@ -20,32 +20,32 @@ export const MerchantCharacter = ({ day, currentPrice, previousPrice }: Merchant
     switch (mood) {
       case "panic":
         return [
-          "🥵 Algo está errado...",
-          "😰 Talvez devêssemos parar?",
-          "😱 Todos estão vendendo!"
+          "🥵 Something is wrong...",
+          "😰 Maybe we should stop?",
+          "😱 Everyone is selling!"
         ][Math.floor((day - 25) % 3)];
       
       case "worried":
         return [
-          "🤔 Esses preços parecem... altos demais",
-          "😬 Será que isso é sustentável?",
-          "😟 Estou ficando nervoso..."
+          "🤔 These prices seem... too high",
+          "😬 Is this sustainable?",
+          "😟 I'm getting nervous..."
         ][Math.floor((day - 20) % 3)];
       
       case "greedy":
         return [
-          "🤑 Compre TUDO! Os preços só sobem!",
-          "💰 Nunca vi tanto dinheiro!",
-          "✨ Isto é mágico! Ficamos ricos!"
+          "🤑 Buy EVERYTHING! Prices only go up!",
+          "💰 I've never seen so much money!",
+          "✨ This is magic! We're rich!"
         ][Math.floor((day - 15) % 3)];
       
       case "excited":
         return priceChange > 0 
-          ? "😃 Ótimas notícias! Preços em alta!"
-          : "😊 Negócios estão indo bem!";
+          ? "😃 Great news! Prices are rising!"
+          : "😊 Business is going well!";
       
       default:
-        return "👨‍💼 Bem-vinda! Tenho as melhores ofertas!";
+        return "👨‍💼 Welcome! I have the best offers!";
     }
   };
 
@@ -73,7 +73,7 @@ export const MerchantCharacter = ({ day, currentPrice, previousPrice }: Merchant
             </p>
           </div>
           <p className="text-[10px] text-muted-foreground text-center">
-            Mercador Jan van der Meer
+            Merchant Jan van der Meer
           </p>
         </div>
       </div>
