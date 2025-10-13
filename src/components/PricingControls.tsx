@@ -37,7 +37,7 @@ export const PricingControls = ({
               <Info className="h-3 w-3" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 pixel-border">
+          <PopoverContent className="w-80 pixel-border bg-background/95 backdrop-blur-sm">
             <div className="space-y-2 text-xs">
               <h4 className="font-bold text-sm mb-2">Trading Terms Explained</h4>
               
