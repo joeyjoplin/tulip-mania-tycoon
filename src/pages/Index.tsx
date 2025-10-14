@@ -343,47 +343,47 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen p-2 sm:p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4 md:space-y-6">
         {/* Header */}
-        <header className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl mb-2">🌷 Tulips Game</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">
+        <header className="text-center space-y-1 sm:space-y-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-1 sm:mb-2">🌷 Tulips Game</h1>
+          <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">
             Holland, 17th century - The Tulipmania era
           </p>
         </header>
 
         {/* Tutorial Toast */}
         {showTutorial && (
-          <div className="pixel-border bg-primary/10 p-4 text-center animate-fade-in">
+          <div className="pixel-border bg-primary/10 p-3 sm:p-4 text-center animate-fade-in">
             {selectedRole === "farmer" ? (
               <>
-                <p className="text-xs mb-2">
+                <p className="text-[10px] sm:text-xs mb-2">
                   👩‍🌾 You're a farmer! Plant and harvest tulips, then sell at the best price!
                 </p>
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
                   🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
                 </p>
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
                   💡 Tip: Plant in the left field and sell when the price is high!
                 </p>
               </>
             ) : (
               <>
-                <p className="text-xs mb-2">
+                <p className="text-[10px] sm:text-xs mb-2">
                   🧔‍♂️ You're a merchant! Buy tulips from farmers and sell to clients!
                 </p>
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
                   🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
                 </p>
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
                   ⚠️ Daily costs: {SHOP_COST} florins (shop) + {STORAGE_COST_PER_TULIP} florins/tulip (storage)
                 </p>
               </>
             )}
             <button 
               onClick={() => setShowTutorial(false)}
-              className="text-xs underline hover:no-underline"
+              className="text-[10px] sm:text-xs underline hover:no-underline"
             >
               Got it!
             </button>
@@ -405,9 +405,9 @@ const Index = () => {
         />
 
         {/* Main Game Area */}
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* Left Column */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {selectedRole === "farmer" ? (
               <>
                 {/* Farmer: Planting field */}
@@ -467,7 +467,7 @@ const Index = () => {
           </div>
 
           {/* Right Column */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {selectedRole === "merchant" ? (
               <>
                 {/* Merchant: Pricing controls and market panel */}
@@ -493,8 +493,8 @@ const Index = () => {
         </div>
 
         {/* Educational Tips */}
-        <div className="pixel-border bg-muted/30 p-4 text-center">
-          <p className="text-xs">
+        <div className="pixel-border bg-muted/30 p-3 sm:p-4 text-center">
+          <p className="text-[10px] sm:text-xs leading-relaxed">
             {selectedRole === "farmer" ? (
               <>
                 {day < 10 && "💡 Plant regularly and sell when the price rises."}
@@ -516,7 +516,7 @@ const Index = () => {
         </div>
 
         {/* Footer */}
-        <footer className="text-center text-xs text-muted-foreground">
+        <footer className="text-center text-[10px] sm:text-xs text-muted-foreground py-2">
           <p>An educational game about the 1637 tulip bubble</p>
         </footer>
       </div>
