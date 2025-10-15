@@ -8,6 +8,7 @@ import { OffersList, Offer } from "@/components/OffersList";
 import { NewsPanel } from "@/components/NewsPanel";
 import { RiskControls } from "@/components/RiskControls";
 import { RoleSelectionScreen, GameRole } from "@/components/RoleSelectionScreen";
+import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 
 // Game constants
@@ -280,130 +281,140 @@ const Game = () => {
   };
 
   if (!selectedRole) {
-    return <RoleSelectionScreen onSelectRole={handleRoleSelection} />;
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="flex-1">
+          <RoleSelectionScreen onSelectRole={handleRoleSelection} />
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen p-2 sm:p-4 md:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4 md:space-y-6">
-        <header className="text-center space-y-1 sm:space-y-2">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-1 sm:mb-2">🌷 Tulips Game</h1>
-          <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">
-            Holland, 17th century - The Tulipmania era
-          </p>
-        </header>
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-1 p-2 sm:p-4 md:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4 md:space-y-6">
+          <header className="text-center space-y-1 sm:space-y-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-1 sm:mb-2">🌷 Tulips Game</h1>
+            <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">
+              Holland, 17th century - The Tulipmania era
+            </p>
+          </header>
 
-        {showTutorial && (
-          <div className="pixel-border bg-primary/10 p-3 sm:p-4 text-center animate-fade-in">
-            {selectedRole === "farmer" ? (
-              <>
-                <p className="text-[10px] sm:text-xs mb-2">
-                  👩‍🌾 You're a farmer! Plant and harvest tulips, then sell at the best price!
-                </p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
-                  🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-[10px] sm:text-xs mb-2">
-                  🧔‍♂️ You're a merchant! Buy tulips from farmers and sell to clients!
-                </p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
-                  🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
-                </p>
-              </>
-            )}
-            <button 
-              onClick={() => setShowTutorial(false)}
-              className="text-[10px] sm:text-xs underline hover:no-underline"
-            >
-              Got it!
-            </button>
-          </div>
-        )}
+          {showTutorial && (
+            <div className="pixel-border bg-primary/10 p-3 sm:p-4 text-center animate-fade-in">
+              {selectedRole === "farmer" ? (
+                <>
+                  <p className="text-[10px] sm:text-xs mb-2">
+                    👩‍🌾 You're a farmer! Plant and harvest tulips, then sell at the best price!
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
+                    🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[10px] sm:text-xs mb-2">
+                    🧔‍♂️ You're a merchant! Buy tulips from farmers and sell to clients!
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
+                    🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
+                  </p>
+                </>
+              )}
+              <button 
+                onClick={() => setShowTutorial(false)}
+                className="text-[10px] sm:text-xs underline hover:no-underline"
+              >
+                Got it!
+              </button>
+            </div>
+          )}
 
-        <NewsPanel newsEvent={newsEvent} />
+          <NewsPanel newsEvent={newsEvent} />
 
-        <GameStats 
-          coins={coins} 
-          day={day} 
-          stock={stock}
-          reputation={selectedRole === "merchant" ? reputation : undefined}
-          marketPrice={currentPrice}
-          hype={hype}
-          priceChange={priceHistory.length > 1 ? currentPrice - priceHistory[priceHistory.length - 2] : 0}
-        />
+          <GameStats 
+            coins={coins} 
+            day={day} 
+            stock={stock}
+            reputation={selectedRole === "merchant" ? reputation : undefined}
+            marketPrice={currentPrice}
+            hype={hype}
+            priceChange={priceHistory.length > 1 ? currentPrice - priceHistory[priceHistory.length - 2] : 0}
+          />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-          <div className="space-y-3 sm:space-y-4">
-            {selectedRole === "farmer" ? (
-              <GameField
-                onHarvest={handleHarvest}
-                coins={coins}
-                onSpendCoins={handleSpendCoins}
-              />
-            ) : (
-              <RiskControls
-                onHoldStock={handleHoldStock}
-                onFlashSale={handleFlashSale}
-                canHoldStock={coins >= HOLD_STOCK_COST}
-                canFlashSale={stock > 0}
-                isFlashSaleActive={isFlashSaleActive}
-              />
-            )}
-          </div>
-          
-          <div>
-            {selectedRole === "merchant" ? (
-              <OffersList
-                offers={offers}
-                onAccept={handleAcceptOffer}
-                onReject={handleRejectOffer}
-              />
-            ) : (
-              <div className="pixel-border bg-card p-6 space-y-4">
-                <h3 className="text-lg font-semibold">📊 Market Panel</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Current price:</span>
-                    <span className="text-2xl font-bold text-primary">{currentPrice}₣</span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="space-y-3 sm:space-y-4">
+              {selectedRole === "farmer" ? (
+                <GameField
+                  onHarvest={handleHarvest}
+                  coins={coins}
+                  onSpendCoins={handleSpendCoins}
+                />
+              ) : (
+                <RiskControls
+                  onHoldStock={handleHoldStock}
+                  onFlashSale={handleFlashSale}
+                  canHoldStock={coins >= HOLD_STOCK_COST}
+                  canFlashSale={stock > 0}
+                  isFlashSaleActive={isFlashSaleActive}
+                />
+              )}
+            </div>
+            
+            <div>
+              {selectedRole === "merchant" ? (
+                <OffersList
+                  offers={offers}
+                  onAccept={handleAcceptOffer}
+                  onReject={handleRejectOffer}
+                />
+              ) : (
+                <div className="pixel-border bg-card p-6 space-y-4">
+                  <h3 className="text-lg font-semibold">📊 Market Panel</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Current price:</span>
+                      <span className="text-2xl font-bold text-primary">{currentPrice}₣</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="space-y-3 sm:space-y-4">
-            {selectedRole === "merchant" ? (
-            <PricingControls
-              marketPrice={currentPrice}
-              bidPrice={bidPrice}
-              askPrice={askPrice}
-              onBidChange={setBidPrice}
-              onAskChange={setAskPrice}
-            />
-            ) : null}
-            
-            <MarketPanel
-              currentPrice={currentPrice}
-              tulipsInInventory={stock}
-              onSell={handleSell}
-              day={day}
-              priceHistory={priceHistory}
-            />
+            <div className="space-y-3 sm:space-y-4">
+              {selectedRole === "merchant" ? (
+                <PricingControls
+                  marketPrice={currentPrice}
+                  bidPrice={bidPrice}
+                  askPrice={askPrice}
+                  onBidChange={setBidPrice}
+                  onAskChange={setAskPrice}
+                />
+              ) : null}
+              
+              <MarketPanel
+                currentPrice={currentPrice}
+                tulipsInInventory={stock}
+                onSell={handleSell}
+                day={day}
+                priceHistory={priceHistory}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {gameOver && (
-        <GameOverModal
-          isWin={isWin}
-          finalCoins={coins}
-          finalDay={day}
-          onRestart={handleRestart}
-        />
-      )}
+        {gameOver && (
+          <GameOverModal
+            isWin={isWin}
+            finalCoins={coins}
+            finalDay={day}
+            onRestart={handleRestart}
+          />
+        )}
+      </div>
+      <Footer />
     </div>
   );
 };
