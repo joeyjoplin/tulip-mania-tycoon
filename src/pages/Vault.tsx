@@ -1,101 +1,213 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useMemo, useEffect } from "react";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/Footer";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Wallet, TrendingUp, Calendar } from "lucide-react";
+import {
+  Wallet, TrendingUp, Calendar, Coins, RefreshCcw, ArrowDownCircle, ArrowUpCircle, AlertTriangle,
+} from "lucide-react";
+
+import { fvDeposit, fvWithdraw, fvGetUnderlying } from "@/lib/feeVaultActions";
+
+const STORAGE_KEY  = "sp:keyId";
+const CONTRACT_KEY = "sp:contractId";
+
+// ❗ Podem vir undefined se não estiverem no .env (mesmo se tipadas como string no TS)
+const FEE_VAULT_ID = import.meta.env.VITE_FEE_VAULT_ID as string | undefined;
+const RESERVE_ID   = import.meta.env.VITE_RESERVE_ID as string | undefined;
+const SYMBOL       = (import.meta.env.VITE_RESERVE_SYMBOL as string) || "TOKEN";
+const DECIMALS     = Number(import.meta.env.VITE_RESERVE_DECIMALS ?? 7);
+
+// ---------- helpers ----------
+function toBase(amountStr: string) {
+  const n = Number(String(amountStr).replace(",", "."));
+  if (Number.isNaN(n) || n <= 0) return null;
+  return BigInt(Math.round(n * 10 ** DECIMALS));
+}
+function fromBase(n: bigint) {
+  const f = Number(n) / 10 ** DECIMALS;
+  return f.toLocaleString(undefined, {
+    minimumFractionDigits: Math.min(DECIMALS, 7),
+    maximumFractionDigits: Math.min(DECIMALS, 7),
+  });
+}
+function shortAddr(addr?: string, chars = 6) {
+  if (!addr) return "—";
+  if (addr.length <= chars * 2 + 3) return addr;
+  return `${addr.slice(0, chars)}…${addr.slice(-chars)}`;
+}
 
 const Vault = () => {
-  const [balance, setBalance] = useState(1000);
-  const [depositedAmount, setDepositedAmount] = useState(0);
-  const [daysDeposited, setDaysDeposited] = useState(0);
-  const [totalEarnings, setTotalEarnings] = useState(0);
+  // Wallet (contractId) — carregamos do storage; sem Mercury/CORS
+  const [contractId, setContractId] = useState<string>(localStorage.getItem(CONTRACT_KEY) || "");
+  const [manualContract, setManualContract] = useState<string>("");
+
+  // Estado on-chain
+  const [underlying, setUnderlying] = useState<bigint | null>(null);
+
+  // UI
   const [depositValue, setDepositValue] = useState("");
   const [withdrawValue, setWithdrawValue] = useState("");
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const dailyRate = 0.05; // 5% daily return
+  // Visual apenas
+  const [daysDeposited, setDaysDeposited] = useState(0);
+  const dailyRate = 0.05;
 
+  const signerKeyId = useMemo(() => localStorage.getItem(STORAGE_KEY) || "", []);
+
+  // Verifica envs obrigatórias
+  const missingEnv = useMemo(() => {
+    const miss: string[] = [];
+    if (!FEE_VAULT_ID) miss.push("VITE_FEE_VAULT_ID");
+    if (!RESERVE_ID)   miss.push("VITE_RESERVE_ID");
+    return miss;
+  }, []);
+
+  // Atualiza saldo quando já temos pre-reqs
   useEffect(() => {
-    if (depositedAmount > 0) {
-      const earnings = depositedAmount * dailyRate * daysDeposited;
-      setTotalEarnings(earnings);
+    if (contractId && !missingEnv.length) {
+      refreshUnderlying();
     }
-  }, [depositedAmount, daysDeposited]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contractId, missingEnv.length]);
 
-  const handleDeposit = () => {
-    const amount = parseFloat(depositValue);
-    if (isNaN(amount) || amount <= 0) {
+  async function refreshUnderlying() {
+    if (!FEE_VAULT_ID || !RESERVE_ID || !contractId) return;
+    try {
+      setLoading(true);
+      const amount = await fvGetUnderlying({
+        feeVaultId: FEE_VAULT_ID,
+        reserveId: RESERVE_ID,
+        userContractId: contractId,
+      });
+      setUnderlying(amount);
+      if (amount > 0n && daysDeposited === 0) setDaysDeposited(1);
+    } catch (err: any) {
+      console.error(err);
       toast({
-        title: "Erro",
-        description: "Por favor, insira um valor válido",
+        title: "Failed to check balance",
+        description: err?.message ?? "Please try again.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-    if (amount > balance) {
+  }
+
+  function ensurePrereqs(actionLabel: string): boolean {
+    if (missingEnv.length) {
       toast({
-        title: "Saldo insuficiente",
-        description: "Você não tem saldo suficiente para este depósito",
+        title: "Incomplete environment",
+        description: `Set ${missingEnv.join(", ")} in .env to ${actionLabel}.`,
         variant: "destructive",
       });
+      return false;
+    }
+    if (!signerKeyId) {
+      toast({
+        title: "Please log in with Passkey",
+        description: "No keyId found on this device.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (!contractId) {
+      toast({
+        title: "Wallet not set",
+        description: "Please enter/save your ContractId (Passkey wallet) before continuing.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  }
+
+  async function handleDeposit() {
+    if (!ensurePrereqs("depositar")) return;
+
+    const base = toBase(depositValue);
+    if (base === null) {
+      toast({ title: "Invalid amount", description: "Please enter a numeric value.", variant: "destructive" });
       return;
     }
 
-    setBalance(balance - amount);
-    setDepositedAmount(depositedAmount + amount);
-    if (depositedAmount === 0) {
-      setDaysDeposited(1);
-    }
-    setDepositValue("");
-    setDepositDialogOpen(false);
-    toast({
-      title: "Depósito realizado!",
-      description: `${amount} florins depositados com sucesso`,
-    });
-  };
-
-  const handleWithdraw = () => {
-    const amount = parseFloat(withdrawValue);
-    const totalAvailable = depositedAmount + totalEarnings;
-    
-    if (isNaN(amount) || amount <= 0) {
-      toast({
-        title: "Erro",
-        description: "Por favor, insira um valor válido",
-        variant: "destructive",
+    try {
+      setLoading(true);
+      await fvDeposit({
+        feeVaultId: FEE_VAULT_ID!,   // seguro, pois ensurePrereqs validou
+        reserveId: RESERVE_ID!,
+        userContractId: contractId,
+        amount: base,
+        signerKeyId,
       });
+      setDepositValue("");
+      setDepositDialogOpen(false);
+      toast({ title: "Depósito enviado!", description: `+${Number(depositValue)} ${SYMBOL}` });
+      await refreshUnderlying();
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Deposit failed", description: err?.message ?? "Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleWithdraw() {
+    if (!ensurePrereqs("sacar")) return;
+
+    const base = toBase(withdrawValue);
+    if (base === null) {
+      toast({ title: "Invalid amount", description: "Please enter a numeric value.", variant: "destructive" });
       return;
     }
-    if (amount > totalAvailable) {
-      toast({
-        title: "Saldo insuficiente",
-        description: "Você não tem saldo suficiente para este saque",
-        variant: "destructive",
-      });
+    if (underlying !== null && base > underlying) {
+      toast({ title: "Insufficient balance", description: "Requested amount exceeds balance in FeeVault.", variant: "destructive" });
       return;
     }
 
-    setBalance(balance + amount);
-    const newDeposited = Math.max(0, depositedAmount - amount);
-    const newEarnings = Math.max(0, totalEarnings - (amount - (depositedAmount - newDeposited)));
-    
-    setDepositedAmount(newDeposited);
-    setTotalEarnings(newEarnings);
-    if (newDeposited === 0) {
-      setDaysDeposited(0);
+    try {
+      setLoading(true);
+      await fvWithdraw({
+        feeVaultId: FEE_VAULT_ID!,
+        reserveId: RESERVE_ID!,
+        userContractId: contractId,
+        amount: base,
+        signerKeyId,
+      });
+      setWithdrawValue("");
+      setWithdrawDialogOpen(false);
+      toast({ title: "Saque enviado!", description: `-${Number(withdrawValue)} ${SYMBOL}` });
+      await refreshUnderlying();
+      if (underlying === 0n) setDaysDeposited(0);
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Withdrawal failed", description: err?.message ?? "Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setWithdrawValue("");
-    setWithdrawDialogOpen(false);
-    toast({
-      title: "Saque realizado!",
-      description: `${amount} florins sacados com sucesso`,
-    });
-  };
+  }
+
+  function handleSaveContractId() {
+    const v = manualContract.trim();
+    if (!v) {
+      toast({ title: "Empty ContractId", description: "Please paste your ContractId to save.", variant: "destructive" });
+      return;
+    }
+    localStorage.setItem(CONTRACT_KEY, v);
+    setContractId(v);
+    setManualContract("");
+    toast({ title: "ContractId saved", description: "We'll use this address to operate in the FeeVault." });
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -106,129 +218,198 @@ const Vault = () => {
               Vault
             </h1>
             <p className="text-sm text-muted-foreground">
-              Deposite fundos e ganhe retornos diários
+              Deposit and withdraw from FeeVault using your Passkey wallet
             </p>
           </header>
 
-          {/* Financial Dashboard */}
+          {/* Banner de ambiente faltante */}
+          {missingEnv.length > 0 && (
+            <Card className="border-destructive">
+              <CardHeader className="flex flex-row items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                <div>
+                  <CardTitle className="text-base">Missing environment variables</CardTitle>
+                  <CardDescription>
+                    Set <code>{missingEnv.join(", ")}</code> in your <code>.env</code> and restart the app.
+                  </CardDescription>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
+
+          {/* Resolver/Salvar ContractId sem Mercury (sem CORS) */}
+          {!contractId && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Set up your Wallet (ContractId)</CardTitle>
+                <CardDescription>
+                  Paste your Passkey wallet's <strong>ContractId</strong> here.
+                  For future logins, save this in localStorage as <code>sp:contractId</code>.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="manual-contract">ContractId</Label>
+                  <Input
+                    id="manual-contract"
+                    placeholder="CD... (your smart wallet address)"
+                    value={manualContract}
+                    onChange={(e) => setManualContract(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveContractId}>Save</Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Dashboard */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Saldo Disponível</CardTitle>
+                <CardTitle className="text-sm font-medium">Saldo no FeeVault</CardTitle>
+                <Coins className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {underlying !== null ? `${fromBase(underlying)} ${SYMBOL}` : "—"}
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-xs text-muted-foreground">Reserve: {shortAddr(RESERVE_ID, 4)}</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={refreshUnderlying}
+                    disabled={loading || !contractId || missingEnv.length > 0}
+                    className="h-7 px-2"
+                  >
+                    <RefreshCcw className="h-3.5 w-3.5 mr-1" />
+                    Atualizar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Your Wallet</CardTitle>
                 <Wallet className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{balance.toFixed(2)} ƒ</div>
-                <p className="text-xs text-muted-foreground">Florins disponíveis para depositar</p>
+                <div className="text-2xl font-bold">{shortAddr(contractId)}</div>
+                <p className="text-xs text-muted-foreground">ContractId (wallet created with Passkey)</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Em Depósito</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{depositedAmount.toFixed(2)} ƒ</div>
-                <p className="text-xs text-muted-foreground">{daysDeposited} dias rendendo {dailyRate * 100}% ao dia</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Ganhos Totais</CardTitle>
+                <CardTitle className="text-sm font-medium">Yield</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{totalEarnings.toFixed(2)} ƒ</div>
-                <p className="text-xs text-muted-foreground">Rendimento acumulado</p>
+                <div className="text-2xl font-bold text-green-600">
+                  {underlying !== null && underlying > 0n ? `5% / day` : "—"}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Visual indicator (UI only). Actual returns depend on the pool.
+                </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Action Buttons */}
+          {/* Actions */}
           <div className="flex gap-4 justify-center">
             <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="lg" className="min-w-[150px]">Depositar</Button>
+                <Button
+                  size="lg"
+                  className="min-w-[150px]"
+                  disabled={!contractId || missingEnv.length > 0}
+                >
+                  <ArrowDownCircle className="h-4 w-4 mr-2" />
+                  Deposit
+                </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Depositar Fundos</DialogTitle>
+                  <DialogTitle>Deposit {SYMBOL}</DialogTitle>
                   <DialogDescription>
-                    Deposite florins para começar a ganhar retornos diários de {dailyRate * 100}%
+                    Send {SYMBOL} to FeeVault. Decimals: {DECIMALS}. FeeVault: {shortAddr(FEE_VAULT_ID, 4)}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="deposit-amount">Valor</Label>
+                    <Label htmlFor="deposit-amount">Amount</Label>
                     <Input
                       id="deposit-amount"
                       type="number"
+                      inputMode="decimal"
+                      step="any"
                       placeholder="0.00"
                       value={depositValue}
                       onChange={(e) => setDepositValue(e.target.value)}
                     />
-                    <p className="text-sm text-muted-foreground">
-                      Saldo disponível: {balance.toFixed(2)} ƒ
-                    </p>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setDepositDialogOpen(false)}>
-                    Cancelar
+                  <Button variant="outline" onClick={() => setDepositDialogOpen(false)} disabled={loading}>
+                    Cancel
                   </Button>
-                  <Button onClick={handleDeposit}>Confirmar Depósito</Button>
+                  <Button onClick={handleDeposit} disabled={loading || missingEnv.length > 0}>
+                    Confirm Deposit
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
 
             <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="lg" variant="outline" className="min-w-[150px]">Sacar</Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="min-w-[150px]"
+                  disabled={!contractId || underlying === 0n || missingEnv.length > 0}
+                >
+                  <ArrowUpCircle className="h-4 w-4 mr-2" />
+                  Withdraw
+                </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Sacar Fundos</DialogTitle>
-                  <DialogDescription>
-                    Retire seus fundos e ganhos a qualquer momento
-                  </DialogDescription>
+                  <DialogTitle>Withdraw {SYMBOL}</DialogTitle>
+                  <DialogDescription>Withdraw your {SYMBOL} from FeeVault.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="withdraw-amount">Valor</Label>
+                    <Label htmlFor="withdraw-amount">Amount</Label>
                     <Input
                       id="withdraw-amount"
                       type="number"
+                      inputMode="decimal"
+                      step="any"
                       placeholder="0.00"
                       value={withdrawValue}
                       onChange={(e) => setWithdrawValue(e.target.value)}
                     />
                     <p className="text-sm text-muted-foreground">
-                      Disponível para saque: {(depositedAmount + totalEarnings).toFixed(2)} ƒ
+                      Available (estimated): {underlying !== null ? `${fromBase(underlying)} ${SYMBOL}` : "—"}
                     </p>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)}>
-                    Cancelar
+                  <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)} disabled={loading}>
+                    Cancel
                   </Button>
-                  <Button onClick={handleWithdraw}>Confirmar Saque</Button>
+                  <Button onClick={handleWithdraw} disabled={loading || missingEnv.length > 0}>
+                    Confirm Withdrawal
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
           </div>
 
-          {/* Info Card */}
-          {depositedAmount === 0 && (
-            <Card className="bg-primary/5">
-              <CardContent className="py-6 text-center">
-                <p className="text-muted-foreground">
-                  Deposite fundos para começar a ganhar retornos diários e iniciar suas negociações de tulipas!
-                </p>
-              </CardContent>
-            </Card>
-          )}
+    
         </div>
       </div>
       <Footer />
@@ -237,3 +418,4 @@ const Vault = () => {
 };
 
 export default Vault;
+

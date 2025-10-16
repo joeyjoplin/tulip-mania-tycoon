@@ -5,8 +5,8 @@ import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
 
 const Ranking = () => {
-  const currentUserRank = 5; // Posição atual do usuário
-  const currentUserName = "Você";
+  const currentUserRank = 5; // Current user position
+  const currentUserName = "You";
   
   const rankings = [
     { rank: 1, name: "Jan Pietersz", wealth: 50000, trades: 247, winRate: 78, icon: Trophy },
@@ -30,7 +30,7 @@ const Ranking = () => {
               Ranking
             </h1>
             <p className="text-sm text-muted-foreground">
-              Top 10 negociadores de tulipas de Amsterdam
+              Top 10 tulip traders in Amsterdam
             </p>
           </header>
 
@@ -43,9 +43,9 @@ const Ranking = () => {
                     <User className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-lg">Sua Posição</p>
+                    <p className="font-semibold text-lg">Your Position</p>
                     <p className="text-sm text-muted-foreground">
-                      {rankings.find(r => r.isCurrentUser)?.wealth.toLocaleString()} florins
+                      {rankings.find(r => r.isCurrentUser)?.wealth.toLocaleString()} guilders
                     </p>
                   </div>
                 </div>
@@ -109,13 +109,13 @@ const Ranking = () => {
                             </p>
                             {isCurrentUser && (
                               <Badge variant="outline" className="text-xs">
-                                Você
+                                You
                               </Badge>
                             )}
                           </div>
                           <div className="flex gap-4 text-xs text-muted-foreground mt-1">
-                            <span>{merchant.trades} negociações</span>
-                            <span>{merchant.winRate}% taxa de vitória</span>
+                            <span>{merchant.trades} trades</span>
+                            <span>{merchant.winRate}% win rate</span>
                           </div>
                         </div>
 
