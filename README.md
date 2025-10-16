@@ -1,73 +1,103 @@
-# Welcome to your Lovable project
+# 🌷 Tulip Mania Tycoon
 
-## Project info
+Experience the legendary Dutch Tulip Mania of 1637 in this modern web-based trading simulation. Buy, sell, and trade your way to fortune in history's first speculative bubble.
 
-**URL**: https://lovable.dev/projects/a016ce88-4b3d-4ca2-95d6-937b490fc4bb
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-4.4.0-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 
-## How can I edit this code?
+## ✨ Features
 
-There are several ways of editing your application.
+- **Secure Authentication**
+  - Passwordless login using WebAuthn/Passkey
+  - Biometric authentication support (FaceID, TouchID, Windows Hello)
+  - Secure wallet creation and management
 
-**Use Lovable**
+- **Trading System**
+  - Buy and sell rare tulip bulbs in a dynamic market
+  - Track price history and market trends
+  - Compete with other traders for the best deals
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a016ce88-4b3d-4ca2-95d6-937b490fc4bb) and start prompting.
+- **Vault & Staking**
+  - Deposit and withdraw assets from your secure vault
+  - Earn yield on staked assets
+  - Monitor your portfolio performance
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Leaderboard**
+  - Compete with other traders
+  - Track your ranking and progress
+  - See top performers and their strategies
 
-**Use your preferred IDE**
+## 🚀 Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js 18+ (LTS recommended)
+- npm or yarn
+- Modern web browser with WebAuthn support
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/tulip-mania-tycoon.git
+   cd tulip-mania-tycoon
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Create a `.env` file in the root directory with the following variables:
+   ```env
+   VITE_RPC_URL=your_rpc_url_here
+   VITE_NETWORK_PASSPHRASE=your_network_passphrase
+   VITE_WALLET_WASM_HASH=your_wallet_wasm_hash
+   VITE_FEE_VAULT_ID=your_fee_vault_id
+   VITE_RESERVE_ID=your_reserve_id
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-**Edit a file directly in GitHub**
+5. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🛠️ Built With
 
-**Use GitHub Codespaces**
+- [React](https://reactjs.org/) - Frontend library
+- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
+- [Vite](https://vitejs.dev/) - Next Generation Frontend Tooling
+- [shadcn/ui](https://ui.shadcn.com/) - Beautifully designed components
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Lucide Icons](https://lucide.dev/) - Beautiful & consistent icon toolkit
+- [Stellar](https://stellar.org/) - Blockchain for payments and assets
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🤝 Contributing
 
-## What technologies are used for this project?
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-This project is built with:
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📝 License
 
-## How can I deploy this project?
+Distributed under the MIT License. See `LICENSE` for more information.
 
-Simply open [Lovable](https://lovable.dev/projects/a016ce88-4b3d-4ca2-95d6-937b490fc4bb) and click on Share -> Publish.
+## 📧 Contact
 
-## Can I connect a custom domain to my Lovable project?
+Daniele Rodrigues dos Santos - (https://X.com/DanielexptoSP) 
 
-Yes, you can!
+Project Link: [https://github.com/yourusername/tulip-mania-tycoon](https://github.com/yourusername/tulip-mania-tycoon)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🙏 Acknowledgments
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- [Tulip Mania](https://en.wikipedia.org/wiki/Tulip_mania) - The original economic bubble
+- [Stellar](https://stellar.org/) - For the amazing blockchain platform
+- [shadcn/ui](https://ui.shadcn.com/) - For the beautiful UI components
