@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright (c) 2025 Daniele Rodrigues dos Santos
+ * MIT License
+ */
+
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 

@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright (c) 2024 Tyler van der Hoeven
+ * MIT License
+ */
+
 import { PasskeyKit, PasskeyServer, SACClient } from "passkey-kit";
 import { Account, Keypair, StrKey } from "@stellar/stellar-sdk/minimal"
 import { Buffer } from "buffer";

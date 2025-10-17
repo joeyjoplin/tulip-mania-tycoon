@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright (c) 2025 Daniele Rodrigues dos Santos
+ * MIT License
+ */
+
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { MerchantCharacter } from "./MerchantCharacter";

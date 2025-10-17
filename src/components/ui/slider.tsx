@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright (c) 2025 Daniele Rodrigues dos Santos
+ * MIT License
+ */
+
 import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 

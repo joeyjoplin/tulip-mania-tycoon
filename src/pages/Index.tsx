@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright (c) 2025 Daniele Rodrigues dos Santos
+ * MIT License
+ */
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { TrendingUp, Trophy, Vault as VaultIcon, GamepadIcon } from "lucide-react";

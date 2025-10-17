@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright (c) 2025 Daniele Rodrigues dos Santos
+ * MIT License
+ */
+
 import { useToast } from "@/hooks/use-toast";
 import { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from "@/components/ui/toast";
 

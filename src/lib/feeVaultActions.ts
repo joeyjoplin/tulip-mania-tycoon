@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright (c) 2025 Daniele Rodrigues dos Santos
+ * MIT License
+ */
+
 // src/lib/feeVaultActions.ts
 import { server, account } from "@/lib/common";
 import { FeeVaultClient } from "./feeVaultClient";

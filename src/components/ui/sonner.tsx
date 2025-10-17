@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright (c) 2025 Daniele Rodrigues dos Santos
+ * MIT License
+ */
+
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, toast } from "sonner";
 

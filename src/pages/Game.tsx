@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright (c) 2025 Daniele Rodrigues dos Santos
+ * MIT License
+ */
+
 import { useState, useEffect } from "react";
 import { GameField } from "@/components/GameField";
 import { MarketPanel } from "@/components/MarketPanel";
