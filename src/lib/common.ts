@@ -2,8 +2,9 @@
  * @license
  * Copyright (c) 2024 Tyler van der Hoeven
  * MIT License
- * Modified by Daniele Rodrigues dos Santos - removed Buffer
+ * Modified by Daniele Rodrigues dos Santos - optimized to build on Vercel
  */
+
 
 import { PasskeyKit, PasskeyServer, SACClient } from "passkey-kit";
 import { Account, Keypair } from "@stellar/stellar-sdk/minimal";
@@ -21,31 +22,34 @@ const mockKeypair = Keypair.fromRawEd25519Seed(zeroSeed);
 export const mockPubkey = mockKeypair.publicKey();
 export const mockSource = new Account(mockPubkey, "0");
 
-// Generate a deterministic keypair based on the current hour,
-// then request an airdrop if the account does not exist
-export const fundKeypair = new Promise<Keypair>(async (resolve) => {
+// Helper: derive a deterministic seed from current hour using Web Crypto
+async function hourlySeed(): Promise<Uint8Array> {
   const now = new Date();
   now.setMinutes(0, 0, 0);
-
   const nowData = new TextEncoder().encode(now.getTime().toString());
   const hashBuffer = await crypto.subtle.digest("SHA-256", nowData);
-  const seed = new Uint8Array(hashBuffer); // Use Uint8Array instead of Buffer
+  return new Uint8Array(hashBuffer);
+}
+
+// Create a keypair, ensure it exists (request airdrop if missing), and return it
+async function createFundKeypair(): Promise<Keypair> {
+  const seed = await hourlySeed();
   const keypair = Keypair.fromRawEd25519Seed(seed);
   const publicKey = keypair.publicKey();
 
-  rpc
-    .getAccount(publicKey)
-    .catch(() => rpc.requestAirdrop(publicKey))
-    .catch(() => {});
+  // Best-effort: fetch account; if not found, request airdrop; ignore errors
+  await rpc.getAccount(publicKey).catch(() => rpc.requestAirdrop(publicKey).catch(() => {}));
 
-  resolve(keypair);
-});
+  return keypair;
+}
 
-// Derive signer and public key from the generated keypair
-export const fundPubkey = (await fundKeypair).publicKey();
-export const fundSigner = basicNodeSigner(
-  await fundKeypair,
-  import.meta.env.VITE_networkPassphrase
+// Export Promises instead of using top-level await (compatible with Vercel/esbuild targets)
+export const fundKeypairPromise: Promise<Keypair> = createFundKeypair();
+
+export const fundPubkeyPromise: Promise<string> = fundKeypairPromise.then((kp) => kp.publicKey());
+
+export const fundSignerPromise = fundKeypairPromise.then((kp) =>
+  basicNodeSigner(kp, import.meta.env.VITE_networkPassphrase)
 );
 
 // Initialize PasskeyKit client
@@ -73,4 +77,5 @@ export const sac = new SACClient({
 
 // Retrieve native asset client (usually the base XLM contract)
 export const native = sac.getSACClient(import.meta.env.VITE_nativeContractId);
+
 
