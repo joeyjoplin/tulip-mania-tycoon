@@ -6,7 +6,6 @@
 
 import { useState, useEffect } from "react";
 import { GameField } from "@/components/GameField";
-import { MarketPanel } from "@/components/MarketPanel";
 import { GameStats } from "@/components/GameStats";
 import { GameOverModal } from "@/components/GameOverModal";
 import { PricingControls } from "@/components/PricingControls";
@@ -17,18 +16,47 @@ import { RoleSelectionScreen, GameRole } from "@/components/RoleSelectionScreen"
 import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 
-// Game constants
+// ------------------------------------------------------------
+// GAME CONSTANTS
+// ------------------------------------------------------------
 const INITIAL_COINS = 1000;
 const INITIAL_PRICE = 20;
 const WINNING_COINS = 5000;
-const CRASH_DAY = 30;
+const CRASH_DAY = 30;                 // legacy fixed crash
 const DAILY_DECAY = 0.08;
 const SHOP_COST = 30;
 const STORAGE_COST_PER_TULIP = 2;
 const HOLD_STOCK_COST = 50;
 const SURVIVAL_REPUTATION = 60;
 
+// ------------------------------------------------------------
+// EARLY-CRASH TUNING (higher challenge)
+// ------------------------------------------------------------
+// Crash checks begin after this day (inclusive)
+const EARLY_CRASH_START_DAY = 18;
+
+// Base probability at start day
+const EARLY_CRASH_BASE = 0.02; // 2%
+
+// Probability added per day after start
+const EARLY_CRASH_PER_DAY = 0.006; // +0.6%/day
+
+// Additional boost when panic zone (>=25)
+const EARLY_CRASH_PANIC_BONUS = 0.05; // +5%
+
+// Maximum daily probability cap
+const EARLY_CRASH_MAX = 0.30; // 30% cap
+
+// Hype multiplier range: low hype ~0.8x, high hype ~1.4x
+const hypeMultiplier = (h: number) => 0.8 + (h / 100) * 0.6;
+
+// ------------------------------------------------------------
+// COMPONENT
+// ------------------------------------------------------------
 const Game = () => {
+  // ------------------------------------------------------------
+  // STATE MANAGEMENT
+  // ------------------------------------------------------------
   const [selectedRole, setSelectedRole] = useState<GameRole | null>(null);
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [day, setDay] = useState(1);
@@ -47,35 +75,41 @@ const Game = () => {
   const [isFlashSaleActive, setIsFlashSaleActive] = useState(false);
   const [stockProtected, setStockProtected] = useState(false);
 
+  // ------------------------------------------------------------
+  // PRICE LOGIC
+  // ------------------------------------------------------------
   const calculatePrice = (currentDay: number, currentHype: number): number => {
     if (currentDay >= CRASH_DAY) {
       return Math.floor(INITIAL_PRICE * 0.1);
     }
-    const hypeMultiplier = 1 + (currentHype / 100);
+    const hypeMult = 1 + currentHype / 100;
     if (currentDay < 15) {
-      return Math.floor(INITIAL_PRICE * (1 + currentDay * 0.3) * hypeMultiplier);
+      return Math.floor(INITIAL_PRICE * (1 + currentDay * 0.3) * hypeMult);
     } else if (currentDay < 25) {
       const base = INITIAL_PRICE * 5;
       const volatility = Math.sin(currentDay) * 20;
-      return Math.floor((base + volatility) * hypeMultiplier);
+      return Math.floor((base + volatility) * hypeMult);
     } else {
       const daysTowardsEnd = currentDay - 25;
-      return Math.floor(INITIAL_PRICE * 5 * (1 - daysTowardsEnd * 0.15) * hypeMultiplier);
+      return Math.floor(INITIAL_PRICE * 5 * (1 - daysTowardsEnd * 0.15) * hypeMult);
     }
   };
 
+  // ------------------------------------------------------------
+  // OFFER GENERATION (for Merchant)
+  // ------------------------------------------------------------
   const generateOffer = (): Offer => {
     const isFarmer = Math.random() > 0.5;
     const farmerNames = ["Hans", "Pieter", "Jan", "Willem", "Dirk"];
     const clientNames = ["Burgomaster", "Wealthy Merchant", "Noble", "Banker"];
-    
+
     if (isFarmer) {
       return {
         id: `farmer-${Date.now()}-${Math.random()}`,
         type: "farmer",
         quantity: Math.floor(Math.random() * 5) + 1,
         price: Math.floor(currentPrice * (0.7 + Math.random() * 0.3)),
-        name: farmerNames[Math.floor(Math.random() * farmerNames.length)]
+        name: farmerNames[Math.floor(Math.random() * farmerNames.length)],
       };
     } else {
       return {
@@ -83,147 +117,217 @@ const Game = () => {
         type: "client",
         quantity: Math.floor(Math.random() * 3) + 1,
         price: Math.floor(currentPrice * (1.1 + Math.random() * 0.4)),
-        name: clientNames[Math.floor(Math.random() * clientNames.length)]
+        name: clientNames[Math.floor(Math.random() * clientNames.length)],
       };
     }
   };
 
+  // ------------------------------------------------------------
+  // NEWS EVENTS
+  // ------------------------------------------------------------
   const generateNewsEvent = (currentDay: number, currentHype: number): string => {
     if (currentDay >= 25) {
       const panicNews = [
         "💥 Collapse rumors are spreading!",
-        "😰 Panicked investors start selling!",
-        "📉 Signs of market saturation!"
+        "😰 Panic among investors!",
+        "📉 Signs of market saturation!",
       ];
       return panicNews[Math.floor(Math.random() * panicNews.length)];
     } else if (currentDay >= 20) {
-      return "⚠️ Analysts question price sustainability";
+      return "⚠️ Analysts question price sustainability.";
     } else if (currentDay >= 15) {
       const hypeNews = [
-        "🔥 Tulipmania reaches new peak!",
-        "💰 Fortunes being made with tulips!",
-        "✨ Nobility pays fortunes for rare tulips!"
+        "🔥 Tulipmania reaches a new peak!",
+        "💰 Fortunes are being made from tulips!",
+        "✨ Nobles are paying fortunes for rare bulbs!",
       ];
       return hypeNews[Math.floor(Math.random() * hypeNews.length)];
     } else if (currentHype > 70) {
-      return "📈 Tulip demand grows exponentially!";
+      return "📈 Tulip demand keeps growing!";
     }
     return "";
   };
 
+  // ------------------------------------------------------------
+  // HELPERS
+  // ------------------------------------------------------------
+  const triggerCrashNow = (reason: "early" | "scheduled", newDay: number) => {
+    if (gameOver) return;
+    setGameOver(true);
+
+    // Survival rule mirrors scheduled crash
+    const survived =
+      selectedRole === "merchant"
+        ? coins >= 0 && reputation >= SURVIVAL_REPUTATION
+        : coins >= 0;
+
+    setIsWin(survived);
+
+    toast.error(
+      reason === "early" ? "💥 Early market collapse!" : "💥 The market collapsed!",
+      {
+        description:
+          reason === "early"
+            ? survived
+              ? "Shock crash hit the market, but you survived."
+              : "A sudden panic wiped out the market value."
+            : survived
+            ? "But you survived!"
+            : "Tulips lost all value!",
+      }
+    );
+
+    // Optional: nudge day to CRASH_DAY so price calc shows post-crash value on next tick
+    if (newDay < CRASH_DAY) {
+      setDay(CRASH_DAY);
+    }
+  };
+
+  // ------------------------------------------------------------
+  // GAME LOOP (DAILY EVENTS + EARLY CRASH CHECK)
+  // ------------------------------------------------------------
   useEffect(() => {
     const dayInterval = setInterval(() => {
-      setDay(prev => {
+      setDay((prev) => {
         const newDay = prev + 1;
-        
+
+        // Merchant daily costs and stock decay
         if (selectedRole === "merchant") {
           const storageCost = stock * STORAGE_COST_PER_TULIP;
           const totalDailyCost = SHOP_COST + storageCost;
-          setCoins(c => Math.max(0, c - totalDailyCost));
-          
+          setCoins((c) => Math.max(0, c - totalDailyCost));
+
           const decayRate = stockProtected ? 0.04 : DAILY_DECAY;
-          setStock(s => Math.floor(s * (1 - decayRate)));
+          setStock((s) => Math.floor(s * (1 - decayRate)));
           setStockProtected(false);
           setIsFlashSaleActive(false);
         }
-        
+
+        // Hype progression
         if (newDay < 15) {
-          setHype(h => Math.min(100, h + 5));
+          setHype((h) => Math.min(100, h + 5));
         } else if (newDay >= 25) {
-          setHype(h => Math.max(0, h - 10));
+          setHype((h) => Math.max(0, h - 10));
         } else {
-          setHype(h => Math.max(0, h - 2));
+          setHype((h) => Math.max(0, h - 2));
         }
-        
+
+        // News generation (for flavor & UI tension)
         const news = generateNewsEvent(newDay, hype);
         if (news) {
           setNewsEvent(news);
           setTimeout(() => setNewsEvent(""), 6000);
         }
-        
+
+        // Offer creation (Merchant)
         if (selectedRole === "merchant" && Math.random() > 0.3) {
-          setOffers(prev => [...prev, generateOffer()]);
+          setOffers((prev) => [...prev, generateOffer()]);
         }
-        
-        if (newDay === CRASH_DAY) {
-          setGameOver(true);
-          const survived = selectedRole === "merchant" 
-            ? coins >= 0 && reputation >= SURVIVAL_REPUTATION 
-            : coins >= 0;
-          setIsWin(survived);
-          toast.error("💥 The market collapsed!", {
-            description: survived ? "But you survived!" : "Tulips are now worth almost nothing..."
-          });
+
+        // ---------- EARLY CRASH CHECK ----------
+        if (!gameOver && newDay >= EARLY_CRASH_START_DAY) {
+          const daysSinceStart = newDay - EARLY_CRASH_START_DAY;
+          let p =
+            EARLY_CRASH_BASE +
+            daysSinceStart * EARLY_CRASH_PER_DAY;
+
+          // Panic-zone bonus
+          if (newDay >= 25) p += EARLY_CRASH_PANIC_BONUS;
+
+          // Scale by hype
+          p *= hypeMultiplier(hype);
+
+          // Cap probability
+          p = Math.min(EARLY_CRASH_MAX, p);
+
+          if (Math.random() < p) {
+            triggerCrashNow("early", newDay);
+            return newDay; // early stop; gameOver will be true
+          }
         }
-        
+
+        // ---------- SCHEDULED CRASH ----------
+        if (!gameOver && newDay === CRASH_DAY) {
+          triggerCrashNow("scheduled", newDay);
+        }
+
         return newDay;
       });
     }, 8000);
 
     return () => clearInterval(dayInterval);
-  }, [stock, stockProtected, hype, coins, reputation, selectedRole]);
+  }, [stock, stockProtected, hype, coins, reputation, selectedRole, gameOver]);
 
+  // ------------------------------------------------------------
+  // PRICE UPDATE
+  // ------------------------------------------------------------
   useEffect(() => {
     const newPrice = calculatePrice(day, hype);
     setCurrentPrice(newPrice);
-    setPriceHistory(prev => [...prev, newPrice]);
+    setPriceHistory((prev) => [...prev, newPrice]);
     setBidPrice(Math.floor(newPrice * 0.9));
     setAskPrice(Math.floor(newPrice * 1.1));
   }, [day, hype]);
 
+  // ------------------------------------------------------------
+  // WINNING CONDITION
+  // ------------------------------------------------------------
   useEffect(() => {
     if (coins >= WINNING_COINS && !gameOver && day < CRASH_DAY) {
       setGameOver(true);
       setIsWin(true);
       toast.success("🎉 You won!", {
-        description: `Accumulated ${coins} florins before the crash!`
+        description: `You accumulated ${coins} florins before the crash!`,
       });
     }
   }, [coins, gameOver, day]);
 
+  // ------------------------------------------------------------
+  // ACTION HANDLERS
+  // ------------------------------------------------------------
   const handleAcceptOffer = (offer: Offer) => {
     if (selectedRole !== "merchant") return;
-    
+
     if (offer.type === "farmer") {
       const totalCost = offer.price * offer.quantity;
       if (coins >= totalCost) {
-        setCoins(c => c - totalCost);
-        setStock(s => s + offer.quantity);
-        setReputation(r => Math.min(100, r + 2));
+        setCoins((c) => c - totalCost);
+        setStock((s) => s + offer.quantity);
+        setReputation((r) => Math.min(100, r + 2));
         toast.success(`✅ Bought ${offer.quantity} tulips from ${offer.name}!`);
       } else {
-        toast.error("💸 Insufficient florins!");
-        setReputation(r => Math.max(0, r - 5));
+        toast.error("💸 Not enough florins!");
+        setReputation((r) => Math.max(0, r - 5));
       }
     } else {
       if (stock >= offer.quantity) {
         const earnings = offer.price * offer.quantity;
-        setCoins(c => c + earnings);
-        setStock(s => s - offer.quantity);
-        setReputation(r => Math.min(100, r + 3));
+        setCoins((c) => c + earnings);
+        setStock((s) => s - offer.quantity);
+        setReputation((r) => Math.min(100, r + 3));
         toast.success(`✅ Sold ${offer.quantity} tulips to ${offer.name}!`);
       } else {
-        toast.error("🌷 Insufficient stock!");
-        setReputation(r => Math.max(0, r - 5));
+        toast.error("🌷 Not enough stock!");
+        setReputation((r) => Math.max(0, r - 5));
       }
     }
-    setOffers(prev => prev.filter(o => o.id !== offer.id));
+    setOffers((prev) => prev.filter((o) => o.id !== offer.id));
   };
 
   const handleRejectOffer = (offerId: string) => {
     if (selectedRole !== "merchant") return;
-    setOffers(prev => prev.filter(o => o.id !== offerId));
-    setReputation(r => Math.max(0, r - 1));
+    setOffers((prev) => prev.filter((o) => o.id !== offerId));
+    setReputation((r) => Math.max(0, r - 1));
   };
 
   const handleHoldStock = () => {
     if (selectedRole !== "merchant") return;
     if (coins >= HOLD_STOCK_COST) {
-      setCoins(c => c - HOLD_STOCK_COST);
+      setCoins((c) => c - HOLD_STOCK_COST);
       setStockProtected(true);
       toast.success("🛡️ Stock protected!");
     } else {
-      toast.error("💸 Insufficient florins!");
+      toast.error("💸 Not enough florins!");
     }
   };
 
@@ -231,34 +335,33 @@ const Game = () => {
     if (selectedRole !== "merchant") return;
     if (stock > 0 && !isFlashSaleActive) {
       setIsFlashSaleActive(true);
-      setAskPrice(Math.floor(askPrice * 0.8));
-      toast.success("⚡ Sale activated!");
+      setAskPrice((p) => Math.floor(p * 0.8));
+      toast.success("⚡ Flash sale activated!");
     } else if (stock === 0) {
-      toast.error("🌷 No stock for sale!");
+      toast.error("🌷 No stock available!");
     }
   };
 
-  const handleHarvest = (count: number) => {
-    if (selectedRole !== "farmer") return;
-    setStock(prev => prev + count);
-    toast.success("🌷 Tulip harvested!");
+  /** Spend coins helper (used by Farmer when planting). */
+  const handleSpendCoins = (amount: number) => {
+    setCoins((prev) => Math.max(0, prev - amount));
   };
 
-  const handleSpendCoins = (amount: number) => {
-    if (selectedRole !== "farmer") return;
-    setCoins(prev => prev - amount);
+  /** Harvest callback from GameField → increments global stock. */
+  const handleHarvest = (count: number) => {
+    setStock((prev) => prev + count);
   };
 
   const handleSell = () => {
     if (stock === 0) {
-      toast.error("🌷 No tulips in stock!");
+      toast.error("🌷 No tulips to sell!");
       return;
     }
     const sellPrice = selectedRole === "farmer" ? currentPrice : askPrice;
     const earnings = stock * sellPrice;
-    setCoins(prev => prev + earnings);
+    setCoins((prev) => prev + earnings);
     setStock(0);
-    toast.success(`💰 Sold all stock!`);
+    toast.success("💰 Sold all stock!");
   };
 
   const handleRestart = () => {
@@ -286,6 +389,39 @@ const Game = () => {
     setShowTutorial(true);
   };
 
+  // ------------------------------------------------------------
+  // FARMER ACTIONS PANEL (minimal; no clutter)
+  // ------------------------------------------------------------
+  const FarmerActionsCard = () => (
+    <div className="pixel-border bg-card p-6 space-y-4">
+      <h3 className="text-lg font-semibold">👩‍🌾 Farmer Actions</h3>
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">Current price</span>
+          <span className="text-2xl font-bold text-primary">{currentPrice}₣</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">Tulips in stock</span>
+          <span className="text-xl font-semibold">{stock}</span>
+        </div>
+        <button
+          onClick={handleSell}
+          className="w-full px-3 py-2 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition"
+        >
+          💰 Sell all stock
+        </button>
+        {showTutorial && (
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
+            Watch the hype—higher hype raises early crash risk after day {EARLY_CRASH_START_DAY}.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
+  // ------------------------------------------------------------
+  // MAIN RENDER
+  // ------------------------------------------------------------
   if (!selectedRole) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -301,48 +437,21 @@ const Game = () => {
     <div className="min-h-screen flex flex-col">
       <div className="flex-1 p-2 sm:p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4 md:space-y-6">
+          {/* Header */}
           <header className="text-center space-y-1 sm:space-y-2">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-1 sm:mb-2">🌷 Tulips Game</h1>
             <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">
-              Holland, 17th century - The Tulipmania era
+              Holland, 17th century – The Tulipmania Era
             </p>
           </header>
 
-          {showTutorial && (
-            <div className="pixel-border bg-primary/10 p-3 sm:p-4 text-center animate-fade-in">
-              {selectedRole === "farmer" ? (
-                <>
-                  <p className="text-[10px] sm:text-xs mb-2">
-                    👩‍🌾 You're a farmer! Plant and harvest tulips, then sell at the best price!
-                  </p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
-                    🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-[10px] sm:text-xs mb-2">
-                    🧔‍♂️ You're a merchant! Buy tulips from farmers and sell to clients!
-                  </p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
-                    🎯 Goal: Accumulate {WINNING_COINS} florins before day {CRASH_DAY}
-                  </p>
-                </>
-              )}
-              <button 
-                onClick={() => setShowTutorial(false)}
-                className="text-[10px] sm:text-xs underline hover:no-underline"
-              >
-                Got it!
-              </button>
-            </div>
-          )}
-
+          {/* News */}
           <NewsPanel newsEvent={newsEvent} />
 
-          <GameStats 
-            coins={coins} 
-            day={day} 
+          {/* Game Stats */}
+          <GameStats
+            coins={coins}
+            day={day}
             stock={stock}
             reputation={selectedRole === "merchant" ? reputation : undefined}
             marketPrice={currentPrice}
@@ -350,7 +459,9 @@ const Game = () => {
             priceChange={priceHistory.length > 1 ? currentPrice - priceHistory[priceHistory.length - 2] : 0}
           />
 
+          {/* Main Layout Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+            {/* Column 1: Farmer field or Merchant RiskControls */}
             <div className="space-y-3 sm:space-y-4">
               {selectedRole === "farmer" ? (
                 <GameField
@@ -368,7 +479,8 @@ const Game = () => {
                 />
               )}
             </div>
-            
+
+            {/* Column 2: Merchant Offers (Farmer keeps a clean column) */}
             <div>
               {selectedRole === "merchant" ? (
                 <OffersList
@@ -377,18 +489,11 @@ const Game = () => {
                   onReject={handleRejectOffer}
                 />
               ) : (
-                <div className="pixel-border bg-card p-6 space-y-4">
-                  <h3 className="text-lg font-semibold">📊 Market Panel</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Current price:</span>
-                      <span className="text-2xl font-bold text-primary">{currentPrice}₣</span>
-                    </div>
-                  </div>
-                </div>
+                <div className="hidden lg:block" />
               )}
             </div>
 
+            {/* Column 3: Merchant Pricing Controls or Farmer Summary */}
             <div className="space-y-3 sm:space-y-4">
               {selectedRole === "merchant" ? (
                 <PricingControls
@@ -398,19 +503,14 @@ const Game = () => {
                   onBidChange={setBidPrice}
                   onAskChange={setAskPrice}
                 />
-              ) : null}
-              
-              <MarketPanel
-                currentPrice={currentPrice}
-                tulipsInInventory={stock}
-                onSell={handleSell}
-                day={day}
-                priceHistory={priceHistory}
-              />
+              ) : (
+                <FarmerActionsCard />
+              )}
             </div>
           </div>
         </div>
 
+        {/* Game Over Modal */}
         {gameOver && (
           <GameOverModal
             isWin={isWin}
@@ -426,3 +526,7 @@ const Game = () => {
 };
 
 export default Game;
+
+
+
+
